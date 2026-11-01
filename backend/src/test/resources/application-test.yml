@@ -1,0 +1,29 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/management_tickets_test
+      auto-index-creation: true
+  mail:
+    host: localhost
+    port: 2525
+
+de:
+  flapdoodle:
+    mongodb:
+      embedded:
+        version: 7.0.5
+
+app:
+  jwt:
+    secret: dGVzdC1zZWNyZXQtMzItYnl0ZXMtbWluaW11bS1mb3ItaG1hYy1zaGEtMjU2
+    access-expiration-min: 15
+    refresh-expiration-days: 7
+  mail:
+    from: no-reply@test.local
+  password-reset:
+    token-expiration-min: 30
+    url: http://localhost:5173/reset-password
+  auth:
+    max-failed-attempts: 5
+  cors:
+    allowed-origins: http://localhost:5173
