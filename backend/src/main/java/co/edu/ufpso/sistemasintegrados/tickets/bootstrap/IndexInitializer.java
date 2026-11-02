@@ -1,5 +1,7 @@
 package co.edu.ufpso.sistemasintegrados.tickets.bootstrap;
 
+import co.edu.ufpso.sistemasintegrados.tickets.domain.Asistencia;
+import co.edu.ufpso.sistemasintegrados.tickets.domain.Capacitacion;
 import co.edu.ufpso.sistemasintegrados.tickets.domain.Cliente;
 import co.edu.ufpso.sistemasintegrados.tickets.domain.Empleado;
 import co.edu.ufpso.sistemasintegrados.tickets.domain.Membresia;
@@ -37,6 +39,8 @@ public class IndexInitializer {
         ensureEmpleadoIndexes();
         ensureMembresiaIndexes();
         ensurePagoIndexes();
+        ensureCapacitacionIndexes();
+        ensureAsistenciaIndexes();
     }
 
     private void ensurePasswordResetTokenIndexes() {
@@ -101,6 +105,32 @@ public class IndexInitializer {
             log.info("Índices verificados en collection pagos");
         } catch (Exception ex) {
             log.warn("No se pudieron crear/verificar índices en pagos: {}", ex.getMessage());
+        }
+    }
+
+    private void ensureCapacitacionIndexes() {
+        IndexOperations ops = mongoTemplate.indexOps(Capacitacion.class);
+        try {
+            Document estadoFecha = new Document().append("estado", 1).append("fechaProgramada", 1);
+            ops.ensureIndex(new CompoundIndexDefinition(estadoFecha).named("estado_1_fechaProgramada_1"));
+            ops.ensureIndex(new Index().on("modalidad", Sort.Direction.ASC));
+            ops.ensureIndex(new Index().on("clientesInvitados", Sort.Direction.ASC));
+            log.info("Índices verificados en collection capacitaciones");
+        } catch (Exception ex) {
+            log.warn("No se pudieron crear/verificar índices en capacitaciones: {}", ex.getMessage());
+        }
+    }
+
+    private void ensureAsistenciaIndexes() {
+        IndexOperations ops = mongoTemplate.indexOps(Asistencia.class);
+        try {
+            Document capacitacionDoc = new Document().append("capacitacionId", 1).append("participanteDocumento", 1);
+            ops.ensureIndex(new CompoundIndexDefinition(capacitacionDoc).named("capacitacionId_1_participanteDocumento_1").unique());
+            ops.ensureIndex(new Index().on("clienteId", Sort.Direction.ASC));
+            ops.ensureIndex(new Index().on("capacitacionId", Sort.Direction.ASC));
+            log.info("Índices verificados en collection asistencias");
+        } catch (Exception ex) {
+            log.warn("No se pudieron crear/verificar índices en asistencias: {}", ex.getMessage());
         }
     }
 }
