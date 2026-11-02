@@ -10,6 +10,7 @@ import co.edu.ufpso.sistemasintegrados.tickets.dto.pago.CreatePagoRequest;
 import co.edu.ufpso.sistemasintegrados.tickets.dto.pago.PagoResponse;
 import co.edu.ufpso.sistemasintegrados.tickets.dto.pago.UpdatePagoRequest;
 import co.edu.ufpso.sistemasintegrados.tickets.exception.BusinessException;
+import co.edu.ufpso.sistemasintegrados.tickets.exception.ConflictException;
 import co.edu.ufpso.sistemasintegrados.tickets.exception.NotFoundException;
 import co.edu.ufpso.sistemasintegrados.tickets.repository.ClienteRepository;
 import co.edu.ufpso.sistemasintegrados.tickets.repository.MembresiaRepository;
@@ -66,7 +67,10 @@ public class PagoService {
             if (!membresia.getClienteId().equals(req.clienteId())) {
                 throw new BusinessException("La membresía no pertenece al cliente indicado");
             }
+            validarValorContraMembresia(req.valor(), membresia, null);
         }
+
+        validarReferenciaUnica(req.referencia(), req.medioPago(), null);
 
         Pago pago = Pago.builder()
                 .clienteId(req.clienteId())
@@ -154,6 +158,14 @@ public class PagoService {
         if (p.getEstado() == EstadoPago.anulado) {
             throw new BusinessException("No se puede modificar un pago anulado");
         }
+        if (p.getMembresiaId() != null) {
+            Membresia m = membresiaRepository.findById(p.getMembresiaId()).orElse(null);
+            if (m != null) {
+                validarValorContraMembresia(req.valor(), m, p.getId());
+            }
+        }
+        validarReferenciaUnica(req.referencia(), req.medioPago(), p.getId());
+
         p.setValor(req.valor());
         p.setFechaPago(req.fechaPago());
         p.setMedioPago(req.medioPago());
@@ -206,6 +218,44 @@ public class PagoService {
         String tag = "[ANULADO: " + motivo + "]";
         if (prev == null || prev.isBlank()) return tag;
         return prev + " " + tag;
+    }
+
+    private void validarValorContraMembresia(java.math.BigDecimal valor, Membresia m, String pagoIdExcluir) {
+        if (valor == null || m == null || m.getPrecio() == null) return;
+        java.math.BigDecimal precio = m.getPrecio();
+        if (valor.compareTo(precio) > 0) {
+            throw new BusinessException("El valor del pago ($" + valor + ") supera el precio de la membresía ($" + precio + ")");
+        }
+        java.math.BigDecimal yaPagado = sumaPagosActivos(m.getId(), pagoIdExcluir);
+        java.math.BigDecimal totalProyectado = yaPagado.add(valor);
+        if (totalProyectado.compareTo(precio) > 0) {
+            java.math.BigDecimal saldo = precio.subtract(yaPagado);
+            throw new BusinessException("La suma de pagos registrados ($" + yaPagado + ") más el nuevo pago ($" + valor
+                    + ") excede el precio de la membresía ($" + precio + "). Saldo pendiente: $" + saldo);
+        }
+    }
+
+    private java.math.BigDecimal sumaPagosActivos(String membresiaId, String pagoIdExcluir) {
+        return pagoRepository.findByMembresiaIdOrderByFechaPagoDesc(membresiaId).stream()
+                .filter(p -> p.getEstado() == EstadoPago.registrado)
+                .filter(p -> pagoIdExcluir == null || !pagoIdExcluir.equals(p.getId()))
+                .map(Pago::getValor)
+                .filter(v -> v != null)
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+    }
+
+    private void validarReferenciaUnica(String referencia, MedioPago medioPago, String pagoIdExcluir) {
+        if (referencia == null || referencia.isBlank()) return;
+        if (medioPago == MedioPago.efectivo) return;
+
+        Query q = Query.query(Criteria.where("referencia").is(referencia));
+        List<Pago> matches = mongoTemplate.find(q, Pago.class);
+        boolean duplicado = matches.stream()
+                .filter(p -> p.getEstado() == EstadoPago.registrado)
+                .anyMatch(p -> pagoIdExcluir == null || !pagoIdExcluir.equals(p.getId()));
+        if (duplicado) {
+            throw new ConflictException("Ya existe un pago registrado con la referencia '" + referencia + "'");
+        }
     }
 
     private String currentUserId() {

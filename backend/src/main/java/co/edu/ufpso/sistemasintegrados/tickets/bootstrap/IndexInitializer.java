@@ -102,6 +102,11 @@ public class IndexInitializer {
             ops.ensureIndex(new CompoundIndexDefinition(clienteFecha).named("clienteId_1_fechaPago_-1"));
             ops.ensureIndex(new Index().on("membresiaId", Sort.Direction.ASC));
             ops.ensureIndex(new Index().on("fechaPago", Sort.Direction.DESC));
+            ops.ensureIndex(new Index()
+                    .on("referencia", Sort.Direction.ASC)
+                    .unique()
+                    .sparse()
+                    .named("referencia_unique_sparse"));
             log.info("Índices verificados en collection pagos");
         } catch (Exception ex) {
             log.warn("No se pudieron crear/verificar índices en pagos: {}", ex.getMessage());
