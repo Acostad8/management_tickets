@@ -1,23 +1,35 @@
 # Handoff — Módulos pendientes del compañero
 
-> Documento para el segundo integrante del Proyecto de Aula.
-> JDAS = Juan David Acosta Sánchez (ya completó su scope).
-> Branch de arranque: **`develop`** (siempre partir desde ahí).
+> **ACTUALIZACIÓN 2026-11-02:** JDAS absorbió todo el scope del compañero.
+> Épicas 3 (Clientes), 4 (Empleados), 5 (Membresías), 6 (Pagos) y 7
+> (Capacitaciones + Asistencias) están cerradas back + front. Este documento
+> queda como referencia histórica de patrones y convenciones.
+>
+> JDAS = Juan David Acosta Sánchez. Branch de arranque: **`develop`**.
 
 ---
 
 ## 1. División del trabajo
 
-| Scope JDAS (hecho) | Scope compañero (pendiente) |
-|---|---|
-| Autenticación JWT (HU1–HU6) | **Épica 3 — Clientes** (HU14–HU17) |
-| Usuarios + Roles + Permisos (HU7–HU13) | **Épica 4 — Empleados** (HU18–HU20) |
-| Tickets polimórficos (HU28–HU37) | **Épica 5 — Membresías** (HU21–HU24) |
-| Base de Conocimiento (HU38–HU41) | **Épica 6 — Pagos** (HU25–HU27, incluye transacción multi-doc) |
-| Dashboard + Reportes (HU45–HU47) | **Épica 7 — Capacitaciones** (HU42–HU44) |
-| Landing + UI framework | Páginas CRUD de los módulos arriba |
+Al 2026-11-02 todo lo listado está entregado por JDAS. Mapa fases → épicas:
 
-HU completa en `docs/historias-usuario.md`. Esquema Mongo oficial en `docs/colecciones-mongo.md`.
+| Épica | Fase back | Fase front | HU |
+|---|---|---|---|
+| 1 Auth | 2 | 7–8 | HU1–HU6 |
+| 2 Usuarios + Roles | 3 | 8, 14 | HU7–HU13 |
+| 3 Clientes | 16 | 18 | HU14–HU17 |
+| 4 Empleados | 17 | 19 | — (schema derivado) |
+| 5 Membresías | 20 | 21 | HU18–HU21 |
+| 6 Pagos (transacción multi-doc) | 22 | 23 | HU22–HU25 |
+| 7 Capacitaciones + Asistencias | 24 | 25 | HU40–HU44 |
+| 8 Tickets core | 4 | 8, 13 | HU26–HU37 |
+| 9 Base conocimiento | 5 | 8 | HU38–HU41 |
+| 10 Reportes/Dashboard | 6 | 8 | HU45–HU47 |
+
+HU completa en `docs/historias-usuario.md`. Esquema Mongo oficial en
+`docs/colecciones-mongo.md` (nota: colecciones `membresias`, `pagos`,
+`capacitaciones`, `asistencias` existen en código pero el schema formal con
+validador `$jsonSchema` aún no está documentado — pendiente de redactar).
 
 ---
 
@@ -207,31 +219,37 @@ Según `docs/colecciones-mongo.md` línea 58, el usuario puede tener `clienteId`
 
 ---
 
-## 8. Checklist por módulo
+## 8. Estado de los módulos (todo cerrado)
 
-### 8.1 Clientes (HU14–HU17)
-- [ ] `domain/Cliente.java` con: `razonSocial`, `nit` (unique), `contactoNombre`, `contactoEmail`, `contactoTelefono`, `direccion`, `ciudad`, `estado`, timestamps
-- [ ] Índice unique en `nit` → agregar a `IndexInitializer`
-- [ ] `ClienteRepository`, `ClienteService`, `ClienteController`
-- [ ] DTOs: `CreateClienteRequest`, `UpdateClienteRequest`, `ClienteResponse`
-- [ ] Permisos en `DataSeeder`
-- [ ] UI: `pages/clientes/ClientesListPage.jsx` + detalle + crear
-- [ ] Ruta en `router/index.jsx` + entry en `Sidebar.jsx`
+### 8.1 Clientes (HU14–HU17) — ✅ Fases 16 + 18
+- `domain/Cliente.java`, `EstadoCliente` (activo/inactivo)
+- Índices: unique `nit`, compuesto `ciudad+estado`
+- UI: `pages/clientes/ClientesListPage.jsx` + `ClienteFormModal.jsx`
 
-### 8.2 Empleados (HU18–HU20)
-- [ ] `domain/Empleado.java` con FK `usuarioId` (`@Field(targetType=OBJECT_ID)`)
-- [ ] Validar en create: `usuarioId` existe + aún sin empleado + rol SOPORTE
-- [ ] Resto: igual que clientes
+### 8.2 Empleados — ✅ Fases 17 + 19
+- `domain/Empleado.java` con FK `usuarioId` + `EmpleadoCounter` para auto `EMP-NNNN`
+- Create valida: usuario existe + tiene rol SOPORTE + sin empleado previo
+- Índices: unique `codigoEmpleado`, unique `usuarioId`, compuesto `especialidad+estado`
+- UI: `pages/empleados/EmpleadosListPage.jsx` + `EmpleadoFormModal.jsx` (multi-chips especialidad)
 
-### 8.3 Membresías + Pagos (Épicas 5 y 6)
-- [ ] `domain/Membresia.java` + `domain/Pago.java`
-- [ ] HU25: `PagoService.registrarPago()` con `@Transactional` (ver 3.4)
-- [ ] UI combinada: list membresías con botón "Registrar pago"
+### 8.3 Membresías (HU18–HU21) — ✅ Fases 20 + 21
+- `domain/Membresia.java` con `modulosContratados: List<ModuloErp>`, `plan`, `fechaInicio/Vencimiento`, `precio`, `pagoAlDia`, `EstadoMembresia` (activa/suspendida/vencida/cancelada)
+- Endpoint auxiliar `/cliente/{id}` para traer membresías de un cliente
+- UI con alerta visual días restantes y badge de vencimiento ≤15d
 
-### 8.4 Capacitaciones (HU42–HU44)
-- [ ] `domain/Capacitacion.java` + enum modalidad masiva/personalizada
-- [ ] `domain/Asistencia.java` para HU44 (cliente marca asistencia)
-- [ ] UI: list + detalle con botón "Confirmar asistencia" (visible solo a rol CLIENTE)
+### 8.4 Pagos (HU22–HU25) — ✅ Fases 22 + 23
+- `domain/Pago.java`, `MedioPago` (efectivo/transferencia/tarjeta/pse/cheque/otro), `EstadoPago` (registrado/anulado)
+- **HU25 transacción multi-doc:** `PagoService.registrarPago()` y `anular()` con `@Transactional` vía `MongoTransactionManager`. Al registrar actualiza `Membresia.pagoAlDia=true` + reactiva estado si venía suspendida/vencida. Al anular revierte `pagoAlDia=false`
+- Edición rechazada en pagos anulados, delete rechazado en pagos registrados
+- UI: `AnularPagoModal` dedicado con motivo obligatorio
+
+### 8.5 Capacitaciones + Asistencias (HU40–HU44) — ✅ Fases 24 + 25
+- `domain/Capacitacion.java` con `ModalidadCapacitacion` (masiva/personalizada), `clientesInvitados` array OBJECT_ID, instructor empleado, cupoMaximo
+- `domain/Asistencia.java` como colección separada
+- **HU44 unicidad:** unique index compuesto `(capacitacionId, participanteDocumento)`
+- `AsistenciaService.registrar()` valida: capacitación activa, cliente invitado si personalizada, cupo disponible
+- Rol `CLIENTE` tiene permiso `asistencias.registrar`
+- UI: `CapacitacionDetailModal` con tabla de asistencias + modal anidado `AsistenciaFormModal`
 
 ---
 
