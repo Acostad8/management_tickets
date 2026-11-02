@@ -2,6 +2,7 @@ package co.edu.ufpso.sistemasintegrados.tickets.bootstrap;
 
 import co.edu.ufpso.sistemasintegrados.tickets.domain.Cliente;
 import co.edu.ufpso.sistemasintegrados.tickets.domain.Empleado;
+import co.edu.ufpso.sistemasintegrados.tickets.domain.Membresia;
 import co.edu.ufpso.sistemasintegrados.tickets.domain.PasswordResetToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +34,7 @@ public class IndexInitializer {
         ensurePasswordResetTokenIndexes();
         ensureClienteIndexes();
         ensureEmpleadoIndexes();
+        ensureMembresiaIndexes();
     }
 
     private void ensurePasswordResetTokenIndexes() {
@@ -71,6 +73,19 @@ public class IndexInitializer {
             log.info("Índices verificados en collection empleados");
         } catch (Exception ex) {
             log.warn("No se pudieron crear/verificar índices en empleados: {}", ex.getMessage());
+        }
+    }
+
+    private void ensureMembresiaIndexes() {
+        IndexOperations ops = mongoTemplate.indexOps(Membresia.class);
+        try {
+            Document clienteEstado = new Document().append("clienteId", 1).append("estado", 1);
+            ops.ensureIndex(new CompoundIndexDefinition(clienteEstado).named("clienteId_1_estado_1"));
+            Document estadoVenc = new Document().append("estado", 1).append("fechaVencimiento", 1);
+            ops.ensureIndex(new CompoundIndexDefinition(estadoVenc).named("estado_1_fechaVencimiento_1"));
+            log.info("Índices verificados en collection membresias");
+        } catch (Exception ex) {
+            log.warn("No se pudieron crear/verificar índices en membresias: {}", ex.getMessage());
         }
     }
 }
