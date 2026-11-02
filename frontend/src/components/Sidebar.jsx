@@ -1,7 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Ticket, Users, ShieldCheck, BookOpen, BarChart3,
-  Building2, Wrench, CreditCard, LogOut, X,
+  Building2, Wrench, CreditCard, Receipt, LogOut, X,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuthStore } from '../stores/useAuthStore';
@@ -28,6 +28,7 @@ const sections = [
     items: [
       { to: '/clientes',   label: 'Clientes',   icon: Building2,  perm: 'clientes.leer' },
       { to: '/membresias', label: 'Membresías', icon: CreditCard, perm: 'membresias.leer' },
+      { to: '/pagos',      label: 'Pagos',      icon: Receipt,    perm: 'pagos.leer' },
     ],
   },
   {
