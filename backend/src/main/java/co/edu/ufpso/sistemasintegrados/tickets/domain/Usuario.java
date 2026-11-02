@@ -11,6 +11,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.FieldType;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -34,7 +35,7 @@ public class Usuario {
     private String apellido;
     private String telefono;
 
-    @Field("clienteId")
+    @Field(value = "clienteId", targetType = FieldType.OBJECT_ID)
     private String clienteId;
 
     @Builder.Default
