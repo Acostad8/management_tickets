@@ -20,6 +20,10 @@ export default {
       },
       fontFamily: {
         sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        mono: ['"IBM Plex Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+      },
+      letterSpacing: {
+        tightest: '-0.045em',
       },
     },
   },

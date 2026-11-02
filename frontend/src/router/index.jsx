@@ -1,7 +1,8 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { createBrowserRouter } from 'react-router-dom';
 import { ProtectedRoute } from '../components/ProtectedRoute';
 import { AppLayout } from '../layouts/AppLayout';
 import { LoginPage } from '../pages/LoginPage';
+import { LandingOrRedirect } from '../pages/LandingPage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { TicketsListPage } from '../pages/tickets/TicketsListPage';
@@ -15,11 +16,11 @@ import { KbCreatePage } from '../pages/kb/KbCreatePage';
 import { ReportesPage } from '../pages/ReportesPage';
 
 export const router = createBrowserRouter([
+  { path: '/', element: <LandingOrRedirect /> },
   { path: '/login', element: <LoginPage /> },
   {
     element: <ProtectedRoute><AppLayout /></ProtectedRoute>,
     children: [
-      { path: '/', element: <Navigate to="/dashboard" replace /> },
       { path: '/dashboard', element: <DashboardPage /> },
 
       { path: '/tickets',          element: <TicketsListPage /> },
