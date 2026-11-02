@@ -61,13 +61,25 @@ public class PagoService {
                 .orElseThrow(() -> new NotFoundException("Cliente", req.clienteId()));
 
         Membresia membresia = null;
-        if (req.membresiaId() != null && !req.membresiaId().isBlank()) {
+        boolean asociado = req.membresiaId() != null && !req.membresiaId().isBlank();
+
+        if (asociado) {
             membresia = membresiaRepository.findById(req.membresiaId())
                     .orElseThrow(() -> new NotFoundException("Membresia", req.membresiaId()));
             if (!membresia.getClienteId().equals(req.clienteId())) {
                 throw new BusinessException("La membresía no pertenece al cliente indicado");
             }
             validarValorContraMembresia(req.valor(), membresia, null);
+        } else {
+            List<Membresia> gestionables = membresiaRepository.findByClienteId(req.clienteId()).stream()
+                    .filter(m -> m.getEstado() == EstadoMembresia.activa
+                            || m.getEstado() == EstadoMembresia.suspendida
+                            || m.getEstado() == EstadoMembresia.vencida)
+                    .toList();
+            if (!gestionables.isEmpty()) {
+                throw new BusinessException("El cliente tiene " + gestionables.size()
+                        + " membresía(s) gestionables. Debes asociar el pago a una de ellas.");
+            }
         }
 
         validarReferenciaUnica(req.referencia(), req.medioPago(), null);
