@@ -54,13 +54,6 @@ public class ClienteController {
         return ResponseEntity.ok(service.update(id, req));
     }
 
-    @DeleteMapping("/{id}")
-    @PreAuthorize("@perms.has('clientes.eliminar')")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
-        service.delete(id);
-        return ResponseEntity.noContent().build();
-    }
-
     @PatchMapping("/{id}/estado")
     @PreAuthorize("@perms.has('clientes.actualizar')")
     public ResponseEntity<ClienteResponse> changeEstado(@PathVariable String id,

@@ -57,13 +57,6 @@ public class EmpleadoController {
         return ResponseEntity.ok(service.update(id, req));
     }
 
-    @DeleteMapping("/{id}")
-    @PreAuthorize("@perms.has('empleados.eliminar')")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
-        service.delete(id);
-        return ResponseEntity.noContent().build();
-    }
-
     @PatchMapping("/{id}/estado")
     @PreAuthorize("@perms.has('empleados.actualizar')")
     public ResponseEntity<EmpleadoResponse> changeEstado(@PathVariable String id,

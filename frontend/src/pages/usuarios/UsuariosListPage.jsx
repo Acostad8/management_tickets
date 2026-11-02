@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Search, Unlock, X, UserPlus, UserCheck, UserX, ShieldAlert, Users, Trash2, Power, Pencil } from 'lucide-react';
+import { Search, Unlock, X, UserPlus, UserCheck, UserX, ShieldAlert, Users, Power, Pencil } from 'lucide-react';
 import { usuariosService } from '../../services/usuarios';
 import { rolesService } from '../../services/roles';
 import { Badge } from '../../components/ui/Badge';
@@ -24,7 +24,6 @@ export function UsuariosListPage() {
   const [roles, setRoles] = useState([]);
   const [error, setError] = useState('');
   const [busyId, setBusyId] = useState(null);
-  const [confirmDelete, setConfirmDelete] = useState(null);
   const [confirmToggle, setConfirmToggle] = useState(null);
   const [confirmUnlock, setConfirmUnlock] = useState(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -55,7 +54,6 @@ export function UsuariosListPage() {
 
   const requestUnlock = (u) => setConfirmUnlock(u);
   const requestToggle = (u) => setConfirmToggle(u);
-  const requestDelete = (u) => setConfirmDelete(u);
 
   const doUnlock = async () => {
     const u = confirmUnlock;
@@ -83,21 +81,6 @@ export function UsuariosListPage() {
       setConfirmToggle(null);
     } catch (err) {
       setError(err.response?.data?.message || 'No se pudo cambiar el estado.');
-    } finally {
-      setBusyId(null);
-    }
-  };
-
-  const doDelete = async () => {
-    const u = confirmDelete;
-    if (!u) return;
-    setError(''); setBusyId(u.id);
-    try {
-      await usuariosService.remove(u.id);
-      load();
-      setConfirmDelete(null);
-    } catch (err) {
-      setError(err.response?.data?.message || 'No se pudo eliminar. El usuario puede tener tickets o datos relacionados.');
     } finally {
       setBusyId(null);
     }
@@ -272,15 +255,6 @@ export function UsuariosListPage() {
                             {u.estado === 'activo' ? <><UserX size={11} /> Desactivar</> : <><UserCheck size={11} /> Activar</>}
                           </button>
                         )}
-                        {hasPermission('usuarios.eliminar') && (
-                          <button
-                            onClick={() => requestDelete(u)}
-                            disabled={busyId === u.id}
-                            className="inline-flex items-center gap-1 rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[11.5px] text-red-300 transition hover:border-red-500/50 hover:bg-red-500/15 disabled:opacity-40"
-                          >
-                            <Trash2 size={11} /> Eliminar
-                          </button>
-                        )}
                       </div>
                     </td>
                   </tr>
@@ -297,24 +271,6 @@ export function UsuariosListPage() {
         onClose={() => setFormOpen(false)}
         onSaved={load}
         usuario={editing}
-      />
-
-      <ConfirmDialog
-        open={Boolean(confirmDelete)}
-        onClose={() => setConfirmDelete(null)}
-        onConfirm={doDelete}
-        title="Eliminar usuario"
-        message="Esta acción es irreversible. El usuario perderá acceso al sistema permanentemente. Si tiene tickets o datos asociados el backend puede rechazar la operación."
-        details={confirmDelete ? {
-          Email: confirmDelete.email,
-          Nombre: `${confirmDelete.nombre || ''} ${confirmDelete.apellido || ''}`.trim(),
-          Roles: (confirmDelete.roles || []).join(', ') || '—',
-          Estado: confirmDelete.estado,
-        } : null}
-        confirmLabel="Eliminar"
-        variant="danger"
-        loading={busyId === confirmDelete?.id}
-        icon={Trash2}
       />
 
       <ConfirmDialog

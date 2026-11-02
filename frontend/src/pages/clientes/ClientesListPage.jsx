@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Search, X, Plus, Pencil, Trash2, Power, Building2, CheckCircle2, XCircle, MapPin } from 'lucide-react';
+import { Search, X, Plus, Pencil, Power, Building2, CheckCircle2, XCircle, MapPin } from 'lucide-react';
 import { clientesService } from '../../services/clientes';
 import { Badge } from '../../components/ui/Badge';
 import { Pagination } from '../../components/ui/Pagination';
@@ -23,7 +23,6 @@ export function ClientesListPage() {
   const [busyId, setBusyId] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [confirmDelete, setConfirmDelete] = useState(null);
   const [confirmToggle, setConfirmToggle] = useState(null);
   const hasPermission = useAuthStore((s) => s.hasPermission);
 
@@ -46,7 +45,6 @@ export function ClientesListPage() {
   const openEdit = (c) => { setEditing(c); setModalOpen(true); };
 
   const requestToggle = (c) => setConfirmToggle(c);
-  const requestDelete = (c) => setConfirmDelete(c);
 
   const doToggleEstado = async () => {
     const c = confirmToggle;
@@ -59,21 +57,6 @@ export function ClientesListPage() {
       setConfirmToggle(null);
     } catch (err) {
       setError(err.response?.data?.message || 'No se pudo cambiar el estado.');
-    } finally {
-      setBusyId(null);
-    }
-  };
-
-  const doDelete = async () => {
-    const c = confirmDelete;
-    if (!c) return;
-    setError(''); setBusyId(c.id);
-    try {
-      await clientesService.remove(c.id);
-      load();
-      setConfirmDelete(null);
-    } catch (err) {
-      setError(err.response?.data?.message || 'No se pudo eliminar. Verifica relaciones con tickets, usuarios o membresías.');
     } finally {
       setBusyId(null);
     }
@@ -218,15 +201,6 @@ export function ClientesListPage() {
                             </button>
                           </>
                         )}
-                        {hasPermission('clientes.eliminar') && (
-                          <button
-                            onClick={() => requestDelete(c)}
-                            disabled={busyId === c.id}
-                            className="inline-flex items-center gap-1 rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[11.5px] text-red-300 transition hover:border-red-500/50 hover:bg-red-500/15 disabled:opacity-40"
-                          >
-                            <Trash2 size={11} /> Eliminar
-                          </button>
-                        )}
                       </div>
                     </td>
                   </tr>
@@ -243,23 +217,6 @@ export function ClientesListPage() {
         onClose={() => setModalOpen(false)}
         onSaved={load}
         cliente={editing}
-      />
-
-      <ConfirmDialog
-        open={Boolean(confirmDelete)}
-        onClose={() => setConfirmDelete(null)}
-        onConfirm={doDelete}
-        title="Eliminar cliente"
-        message="Esta acción es irreversible. El cliente dejará de existir en el sistema."
-        details={confirmDelete ? {
-          'Razón social': confirmDelete.razonSocial,
-          NIT: confirmDelete.nit,
-          Estado: confirmDelete.estado,
-        } : null}
-        confirmLabel="Eliminar"
-        variant="danger"
-        loading={busyId === confirmDelete?.id}
-        icon={Trash2}
       />
 
       <ConfirmDialog

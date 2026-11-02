@@ -33,10 +33,10 @@ public class DataSeeder {
         createRolIfMissing(repo, "ADMIN", "Administrador",
                 "Acceso total al sistema",
                 List.of(
-                        "usuarios.crear", "usuarios.leer", "usuarios.actualizar", "usuarios.eliminar",
+                        "usuarios.crear", "usuarios.leer", "usuarios.actualizar",
                         "roles.crear", "roles.leer", "roles.actualizar", "roles.eliminar",
-                        "clientes.crear", "clientes.leer", "clientes.actualizar", "clientes.eliminar",
-                        "empleados.crear", "empleados.leer", "empleados.actualizar", "empleados.eliminar",
+                        "clientes.crear", "clientes.leer", "clientes.actualizar",
+                        "empleados.crear", "empleados.leer", "empleados.actualizar",
                         "tickets.crear", "tickets.leer", "tickets.actualizar", "tickets.eliminar",
                         "tickets.asignar", "tickets.actualizar_estado", "tickets.responder",
                         "base_conocimiento.crear", "base_conocimiento.leer",
