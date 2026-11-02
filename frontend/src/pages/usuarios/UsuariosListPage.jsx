@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Search, Unlock, X, UserPlus, UserCheck, UserX, ShieldAlert, Users, Trash2, Power } from 'lucide-react';
+import { Search, Unlock, X, UserPlus, UserCheck, UserX, ShieldAlert, Users, Trash2, Power, Pencil } from 'lucide-react';
 import { usuariosService } from '../../services/usuarios';
 import { rolesService } from '../../services/roles';
 import { Badge } from '../../components/ui/Badge';
 import { Pagination } from '../../components/ui/Pagination';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useAuthStore } from '../../stores/useAuthStore';
+import { UsuarioFormModal } from './UsuarioFormModal';
 
 const ESTADOS = ['activo', 'inactivo', 'bloqueado'];
 
@@ -26,7 +27,12 @@ export function UsuariosListPage() {
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [confirmToggle, setConfirmToggle] = useState(null);
   const [confirmUnlock, setConfirmUnlock] = useState(null);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editing, setEditing] = useState(null);
   const hasPermission = useAuthStore((s) => s.hasPermission);
+
+  const openCreate = () => { setEditing(null); setFormOpen(true); };
+  const openEdit = (u) => { setEditing(u); setFormOpen(true); };
 
   const load = () => {
     setLoading(true);
@@ -119,7 +125,11 @@ export function UsuariosListPage() {
           </p>
         </div>
         {hasPermission('usuarios.crear') && (
-          <button className="btn-primary self-start sm:self-end" disabled title="Alta en progreso">
+          <button
+            type="button"
+            onClick={openCreate}
+            className="btn-primary self-start sm:self-end"
+          >
             <UserPlus size={14} /> Nuevo usuario
           </button>
         )}
@@ -236,6 +246,14 @@ export function UsuariosListPage() {
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-right align-middle">
                       <div className="inline-flex items-center justify-end gap-1.5">
+                        {hasPermission('usuarios.actualizar') && (
+                          <button
+                            onClick={() => openEdit(u)}
+                            className="inline-flex items-center gap-1 rounded-md border border-zinc-800 bg-zinc-900/60 px-2.5 py-1 text-[11.5px] text-zinc-300 transition hover:border-zinc-700 hover:bg-zinc-900"
+                          >
+                            <Pencil size={11} /> Editar
+                          </button>
+                        )}
                         {u.estado === 'bloqueado' && hasPermission('usuarios.actualizar') && (
                           <button
                             onClick={() => requestUnlock(u)}
@@ -273,6 +291,13 @@ export function UsuariosListPage() {
           <Pagination page={data.page} totalPages={data.totalPages} onChange={setPage} />
         </>
       )}
+
+      <UsuarioFormModal
+        open={formOpen}
+        onClose={() => setFormOpen(false)}
+        onSaved={load}
+        usuario={editing}
+      />
 
       <ConfirmDialog
         open={Boolean(confirmDelete)}
