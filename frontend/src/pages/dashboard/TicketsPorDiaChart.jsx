@@ -33,9 +33,9 @@ export function TicketsPorDiaChart({ data }) {
         {data.map((d) => {
           const h = Math.max(4, (d.count / max) * 100);
           return (
-            <div key={d.fecha} className="group relative flex flex-1 flex-col items-center justify-end">
+            <div key={d.fecha} className="group relative flex h-full flex-1 flex-col items-center justify-end">
               <div
-                className="w-full rounded-sm bg-brand-500/30 transition group-hover:bg-brand-500"
+                className="w-full rounded-sm bg-brand-500/70 transition group-hover:bg-brand-400 dark:bg-brand-500/60"
                 style={{ height: `${h}%` }}
                 title={`${d.fecha} · ${d.count} ticket(s)`}
               />
