@@ -1,23 +1,20 @@
 import clsx from 'clsx';
 
-export function StatCard({ label, value, icon: Icon, hint, accent, children }) {
+export function StatCard({ label, value, icon: Icon, hint, accent }) {
   return (
-    <div className="card flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
+    <div className="relative overflow-hidden border border-zinc-900 bg-zinc-950 p-5 transition hover:border-zinc-800">
+      <div className="flex items-start justify-between gap-4">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
           {label}
-        </span>
+        </div>
         {Icon && (
-          <span className={clsx('inline-flex h-7 w-7 items-center justify-center rounded-md', accent || 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400')}>
-            <Icon size={14} />
-          </span>
+          <Icon size={15} className={clsx('flex-shrink-0', accent || 'text-zinc-600')} />
         )}
       </div>
-      <div className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
+      <div className="mt-4 text-4xl font-semibold tabular-nums tracking-tight text-zinc-50">
         {value}
       </div>
-      {hint && <div className="text-[12px] text-slate-500 dark:text-slate-400">{hint}</div>}
-      {children}
+      {hint && <div className="mt-2 text-[11.5px] text-zinc-500">{hint}</div>}
     </div>
   );
 }

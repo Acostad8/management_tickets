@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { api } from '../lib/api';
@@ -15,17 +15,6 @@ export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || '/dashboard';
-
-  useEffect(() => {
-    document.body.classList.add('landing');
-    const root = document.documentElement;
-    const hadDark = root.classList.contains('dark');
-    root.classList.add('dark');
-    return () => {
-      document.body.classList.remove('landing');
-      if (!hadDark) root.classList.remove('dark');
-    };
-  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -46,7 +35,7 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 antialiased">
+    <div className="relative min-h-screen bg-zinc-950 text-zinc-100 antialiased">
       <GridBackdrop />
 
       <nav className="relative z-10 flex items-center justify-between px-6 py-5 sm:px-10">
@@ -59,9 +48,11 @@ export function LoginPage() {
         </Link>
       </nav>
 
-      <main className="relative z-10 mx-auto flex min-h-[calc(100vh-72px)] max-w-md flex-col justify-center px-6 pb-16">
+      <main className="relative z-10 mx-auto flex min-h-[calc(100vh-72px)] max-w-sm flex-col justify-center px-6 pb-16">
         <div className="mb-10">
-          <h1 className="text-3xl font-semibold tracking-tight text-zinc-50">Ingresa al panel</h1>
+          <h1 className="text-[32px] font-semibold leading-tight tracking-tight text-zinc-50">
+            Ingresa al panel
+          </h1>
           <p className="mt-2 text-[14px] text-zinc-400">
             Usa tu correo corporativo y la contraseña asignada por tu administrador.
           </p>
@@ -69,9 +60,7 @@ export function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label htmlFor="email" className="mb-1.5 block text-[12px] font-medium uppercase tracking-wider text-zinc-500">
-              Correo electrónico
-            </label>
+            <label htmlFor="email" className="label">Correo electrónico</label>
             <input
               id="email"
               type="email"
@@ -80,16 +69,16 @@ export function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="tucorreo@empresa.com"
-              className="w-full rounded-md border border-zinc-800 bg-zinc-900/60 px-3.5 py-2.5 text-[14px] text-zinc-100 placeholder:text-zinc-600 transition focus:border-brand-500 focus:bg-zinc-900 focus:outline-none focus:ring-1 focus:ring-brand-500/50"
+              className="input"
             />
           </div>
 
           <div>
             <div className="mb-1.5 flex items-center justify-between">
-              <label htmlFor="password" className="block text-[12px] font-medium uppercase tracking-wider text-zinc-500">
+              <label htmlFor="password" className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">
                 Contraseña
               </label>
-              <Link to="/login" className="text-[12px] text-zinc-500 transition hover:text-zinc-300">
+              <Link to="/login" className="text-[11px] text-zinc-500 transition hover:text-zinc-300">
                 ¿Olvidaste?
               </Link>
             </div>
@@ -102,7 +91,7 @@ export function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full rounded-md border border-zinc-800 bg-zinc-900/60 px-3.5 py-2.5 pr-11 text-[14px] text-zinc-100 placeholder:text-zinc-600 transition focus:border-brand-500 focus:bg-zinc-900 focus:outline-none focus:ring-1 focus:ring-brand-500/50"
+                className="input pr-11"
               />
               <button
                 type="button"
@@ -141,16 +130,6 @@ export function LoginPage() {
             )}
           </button>
         </form>
-
-        <div className="mt-10 rounded-md border border-zinc-900 bg-zinc-900/40 p-4">
-          <div className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">
-            Cuenta de demostración
-          </div>
-          <div className="mt-2 flex flex-col gap-0.5 text-[12.5px] text-zinc-300">
-            <span className="font-mono">admin@sistemasintegrados.co</span>
-            <span className="font-mono">Admin1234!</span>
-          </div>
-        </div>
       </main>
     </div>
   );
