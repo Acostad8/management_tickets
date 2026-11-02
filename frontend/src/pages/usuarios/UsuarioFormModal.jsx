@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { X, Save, Loader2, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { X, Save, Loader2, Eye, EyeOff, ShieldCheck, Check, AlertCircle, Lock } from 'lucide-react';
 import { usuariosService } from '../../services/usuarios';
 import { rolesService } from '../../services/roles';
 import { clientesService } from '../../services/clientes';
@@ -14,13 +14,27 @@ const EMPTY = {
   roles: [],
 };
 
-const checks = (pw) => ({
-  len:   pw.length >= 8,
-  upper: /[A-Z]/.test(pw),
-  lower: /[a-z]/.test(pw),
-  digit: /\d/.test(pw),
-  spec:  /[^A-Za-z0-9]/.test(pw),
-});
+const PASSWORD_RULES = [
+  { key: 'len',   label: 'Mínimo 8 caracteres',             test: (p) => p.length >= 8,          hint: '8+' },
+  { key: 'upper', label: 'Una letra mayúscula (A-Z)',       test: (p) => /[A-Z]/.test(p),        hint: 'A' },
+  { key: 'lower', label: 'Una letra minúscula (a-z)',       test: (p) => /[a-z]/.test(p),        hint: 'a' },
+  { key: 'digit', label: 'Un número (0-9)',                 test: (p) => /\d/.test(p),           hint: '9' },
+  { key: 'spec',  label: 'Un carácter especial (!@#$…)',    test: (p) => /[^A-Za-z0-9]/.test(p), hint: '!' },
+];
+
+const checks = (pw) => Object.fromEntries(PASSWORD_RULES.map((r) => [r.key, r.test(pw)]));
+
+const strengthLevel = (pw, pwChecks) => {
+  if (!pw) return { score: 0, label: 'Vacía',       color: 'bg-zinc-800',    text: 'text-zinc-500' };
+  const passed = Object.values(pwChecks).filter(Boolean).length;
+  const bonus = pw.length >= 12 ? 1 : 0;
+  const total = passed + bonus;
+  if (total <= 2)       return { score: 1, label: 'Muy débil',   color: 'bg-red-500',     text: 'text-red-300' };
+  if (total === 3)      return { score: 2, label: 'Débil',       color: 'bg-orange-500',  text: 'text-orange-300' };
+  if (total === 4)      return { score: 3, label: 'Media',       color: 'bg-amber-500',   text: 'text-amber-300' };
+  if (total === 5)      return { score: 4, label: 'Fuerte',      color: 'bg-emerald-500', text: 'text-emerald-300' };
+  return                      { score: 5, label: 'Muy fuerte',  color: 'bg-emerald-400', text: 'text-emerald-200' };
+};
 
 export function UsuarioFormModal({ open, onClose, onSaved, usuario }) {
   const isEdit = Boolean(usuario?.id);
@@ -68,6 +82,7 @@ export function UsuarioFormModal({ open, onClose, onSaved, usuario }) {
 
   const pwChecks = checks(form.password);
   const pwValid = isEdit || Object.values(pwChecks).every(Boolean);
+  const strength = strengthLevel(form.password, pwChecks);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -168,34 +183,80 @@ export function UsuarioFormModal({ open, onClose, onSaved, usuario }) {
           </div>
 
           {!isEdit && (
-            <div>
-              <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
-                Contraseña <span className="ml-1 text-red-400">*</span>
+            <div className="rounded-md border border-zinc-900 bg-zinc-900/30 p-4">
+              <label className="mb-2 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
+                <Lock size={11} /> Contraseña <span className="text-red-400">*</span>
               </label>
+
               <div className="relative">
                 <input
                   type={showPw ? 'text' : 'password'}
                   value={form.password}
                   onChange={(e) => change('password', e.target.value)}
                   required
-                  className={`h-9 w-full rounded-md border bg-zinc-900/50 pl-2.5 pr-9 text-[13px] text-zinc-100 placeholder:text-zinc-600 focus:bg-zinc-900 focus:outline-none focus:ring-1 ${fieldErrors.password ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/50' : 'border-zinc-800 focus:border-brand-500 focus:ring-brand-500/50'}`}
+                  placeholder="Mínimo 8 caracteres con mayúscula, minúscula, número y símbolo"
+                  className={`h-10 w-full rounded-md border bg-zinc-950 pl-3 pr-10 text-[14px] text-zinc-100 placeholder:text-[12px] placeholder:text-zinc-600 focus:bg-zinc-950 focus:outline-none focus:ring-2 ${fieldErrors.password ? 'border-red-500/60 focus:border-red-500 focus:ring-red-500/30' : 'border-zinc-800 focus:border-brand-500 focus:ring-brand-500/30'}`}
+                  autoComplete="new-password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPw((s) => !s)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex h-6 w-6 items-center justify-center rounded text-zinc-500 hover:text-zinc-200"
+                  aria-label={showPw ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex h-7 w-7 items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200"
                 >
-                  {showPw ? <EyeOff size={12} /> : <Eye size={12} />}
+                  {showPw ? <EyeOff size={14} /> : <Eye size={14} />}
                 </button>
               </div>
-              <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-0.5 text-[10.5px] font-mono sm:grid-cols-5">
-                <PwRule ok={pwChecks.len} label="8+ chars" />
-                <PwRule ok={pwChecks.upper} label="ABC" />
-                <PwRule ok={pwChecks.lower} label="abc" />
-                <PwRule ok={pwChecks.digit} label="123" />
-                <PwRule ok={pwChecks.spec} label="!@#" />
+
+              <div className="mt-3">
+                <div className="mb-1.5 flex items-center justify-between text-[11px]">
+                  <span className="text-zinc-500">Nivel de seguridad</span>
+                  <span className={`font-mono font-medium ${strength.text}`}>{strength.label}</span>
+                </div>
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <div
+                      key={n}
+                      className={`h-1.5 flex-1 rounded-full transition-colors duration-200 ${
+                        n <= strength.score ? strength.color : 'bg-zinc-800'
+                      }`}
+                    />
+                  ))}
+                </div>
               </div>
-              {fieldErrors.password && <p className="mt-1 text-[11px] text-red-300">{fieldErrors.password}</p>}
+
+              <ul className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {PASSWORD_RULES.map((r) => {
+                  const ok = pwChecks[r.key];
+                  return (
+                    <li
+                      key={r.key}
+                      className={`flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-[12px] transition ${
+                        ok
+                          ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-200'
+                          : 'border-zinc-800 bg-zinc-900/40 text-zinc-400'
+                      }`}
+                    >
+                      <span
+                        className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border transition ${
+                          ok
+                            ? 'border-emerald-500/50 bg-emerald-500/20 text-emerald-300'
+                            : 'border-zinc-700 bg-zinc-900 text-zinc-600'
+                        }`}
+                      >
+                        {ok ? <Check size={11} strokeWidth={3} /> : <span className="font-mono text-[9px]">{r.hint}</span>}
+                      </span>
+                      <span className="flex-1">{r.label}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              {fieldErrors.password && (
+                <p className="mt-2 inline-flex items-center gap-1 text-[11.5px] text-red-300">
+                  <AlertCircle size={11} /> {fieldErrors.password}
+                </p>
+              )}
             </div>
           )}
 
@@ -272,15 +333,6 @@ export function UsuarioFormModal({ open, onClose, onSaved, usuario }) {
         </form>
       </div>
     </div>
-  );
-}
-
-function PwRule({ ok, label }) {
-  return (
-    <span className={`inline-flex items-center gap-1 ${ok ? 'text-emerald-300' : 'text-zinc-600'}`}>
-      <span className={`h-1 w-1 rounded-full ${ok ? 'bg-emerald-400' : 'bg-zinc-700'}`} />
-      {label}
-    </span>
   );
 }
 
