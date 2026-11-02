@@ -11,6 +11,7 @@ import { TicketDetailPage } from '../pages/tickets/TicketDetailPage';
 import { UsuariosListPage } from '../pages/usuarios/UsuariosListPage';
 import { RolesListPage } from '../pages/roles/RolesListPage';
 import { ClientesListPage } from '../pages/clientes/ClientesListPage';
+import { EmpleadosListPage } from '../pages/empleados/EmpleadosListPage';
 import { KbListPage } from '../pages/kb/KbListPage';
 import { KbDetailPage } from '../pages/kb/KbDetailPage';
 import { KbCreatePage } from '../pages/kb/KbCreatePage';
@@ -31,6 +32,7 @@ export const router = createBrowserRouter([
       { path: '/usuarios',         element: <UsuariosListPage /> },
       { path: '/roles',            element: <RolesListPage /> },
       { path: '/clientes',         element: <ClientesListPage /> },
+      { path: '/empleados',        element: <EmpleadosListPage /> },
 
       { path: '/base-conocimiento',          element: <KbListPage /> },
       { path: '/base-conocimiento/nuevo',    element: <KbCreatePage /> },
