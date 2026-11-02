@@ -1,7 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Ticket, Users, ShieldCheck, BookOpen, BarChart3,
-  LogOut, X,
+  Building2, LogOut, X,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuthStore } from '../stores/useAuthStore';
@@ -26,6 +26,7 @@ const sections = [
   {
     label: 'Administración',
     items: [
+      { to: '/clientes', label: 'Clientes', icon: Building2,   perm: 'clientes.leer' },
       { to: '/usuarios', label: 'Usuarios', icon: Users,       perm: 'usuarios.leer' },
       { to: '/roles',    label: 'Roles',    icon: ShieldCheck, perm: 'roles.leer' },
     ],
