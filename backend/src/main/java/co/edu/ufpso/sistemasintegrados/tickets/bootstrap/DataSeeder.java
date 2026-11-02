@@ -42,7 +42,8 @@ public class DataSeeder {
                         "base_conocimiento.crear", "base_conocimiento.leer",
                         "base_conocimiento.actualizar", "base_conocimiento.eliminar",
                         "membresias.crear", "membresias.leer", "membresias.actualizar", "membresias.eliminar",
-                        "pagos.gestionar", "capacitaciones.gestionar",
+                        "pagos.crear", "pagos.leer", "pagos.actualizar", "pagos.eliminar",
+                        "capacitaciones.gestionar",
                         "reportes.leer"));
 
         createRolIfMissing(repo, "SOPORTE", "Personal de Soporte",
@@ -65,7 +66,7 @@ public class DataSeeder {
                 List.of(
                         "clientes.crear", "clientes.leer", "clientes.actualizar",
                         "membresias.crear", "membresias.leer", "membresias.actualizar",
-                        "pagos.leer",
+                        "pagos.crear", "pagos.leer", "pagos.actualizar",
                         "reportes.leer"));
     }
 
