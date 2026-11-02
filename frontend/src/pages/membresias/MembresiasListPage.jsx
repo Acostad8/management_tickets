@@ -292,7 +292,11 @@ export function MembresiasListPage() {
         onClose={() => setConfirmDelete(null)}
         onConfirm={doDelete}
         title="Eliminar membresía"
-        message="Esta acción es irreversible. Si la membresía tiene pagos asociados, el backend puede rechazar la operación."
+        message={
+          confirmDelete?.estado === 'activa'
+            ? 'Una membresía activa no puede eliminarse. Cambiá primero su estado a cancelada.'
+            : 'Solo se pueden eliminar membresías sin pagos asociados. Si ya hay pagos registrados, cancelá la membresía en lugar de eliminarla para preservar la trazabilidad contable.'
+        }
         details={confirmDelete ? {
           Plan: confirmDelete.plan,
           Cliente: confirmDelete.clienteRazonSocial || confirmDelete.clienteId,
