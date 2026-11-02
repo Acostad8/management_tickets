@@ -5,29 +5,19 @@ export function HeroSection({ authenticated }) {
   return (
     <section className="relative overflow-hidden border-b border-zinc-900">
       <GridBackdrop />
-      <div className="relative mx-auto max-w-6xl px-6 pb-24 pt-24 sm:pt-32">
-        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/60 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-400">
-          <span className="relative inline-flex h-1.5 w-1.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-500 opacity-60" />
-            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-brand-500" />
-          </span>
-          MongoDB · Aggregation Framework
-        </div>
-
+      <div className="relative mx-auto max-w-6xl px-6 pb-28 pt-24 sm:pt-32">
         <h1 className="max-w-4xl text-[46px] font-semibold leading-[1.02] tracking-tightest text-zinc-50 sm:text-[72px]">
-          Soporte técnico<br />
-          que entiende{' '}
+          Soporte técnico centralizado,{' '}
           <span className="relative inline-block text-zinc-50">
-            cada módulo
+            del reporte a la solución
             <span className="absolute bottom-1 left-0 right-0 h-[6px] bg-brand-500/30" aria-hidden />
           </span>
           .
         </h1>
 
-        <p className="mt-7 max-w-2xl text-[17px] leading-relaxed text-zinc-400">
-          Un ticket de la pasarela de pagos no se parece a uno de la planta de producción.
-          <br className="hidden sm:block" />
-          Dejamos de forzarlos en la misma plantilla.
+        <p className="mt-8 max-w-2xl text-[17px] leading-relaxed text-zinc-400">
+          Una plataforma única para que tus clientes reporten incidentes y tu equipo de
+          soporte los atienda con toda la información que necesita en un solo lugar.
         </p>
 
         <div className="mt-10 flex flex-wrap items-center gap-3">
@@ -35,11 +25,11 @@ export function HeroSection({ authenticated }) {
             to={authenticated ? '/dashboard' : '/login'}
             className="group inline-flex h-11 items-center gap-2 rounded-md bg-zinc-50 px-5 text-[14px] font-medium text-zinc-950 transition hover:bg-white"
           >
-            {authenticated ? 'Abrir panel de soporte' : 'Ingresar al panel'}
+            {authenticated ? 'Abrir panel de soporte' : 'Ingresar al sistema'}
             <ArrowUpRight size={16} className="transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
           </Link>
           <a
-            href="#polimorfismo"
+            href="#como-funciona"
             className="inline-flex h-11 items-center gap-2 rounded-md border border-zinc-800 bg-zinc-900/40 px-5 text-[14px] font-medium text-zinc-300 transition hover:border-zinc-700 hover:bg-zinc-900"
           >
             Ver cómo funciona
@@ -47,22 +37,20 @@ export function HeroSection({ authenticated }) {
         </div>
 
         <dl className="mt-20 grid grid-cols-2 gap-x-10 gap-y-6 border-t border-zinc-900 pt-10 sm:grid-cols-4">
-          <Stat value="5" label="Módulos ERP soportados" />
-          <Stat value="$text" label="Búsqueda semántica Mongo" mono />
-          <Stat value="JWT" label="Access + refresh rotativo" mono />
-          <Stat value="36" label="Permisos granulares" />
+          <Stat value="5" label="Módulos ERP cubiertos" />
+          <Stat value="24/7" label="Portal siempre disponible" />
+          <Stat value="100%" label="Historial de cada caso" />
+          <Stat value="1" label="Panel para todo el equipo" />
         </dl>
       </div>
     </section>
   );
 }
 
-function Stat({ value, label, mono }) {
+function Stat({ value, label }) {
   return (
     <div>
-      <div className={`text-3xl font-semibold tracking-tight text-zinc-100 ${mono ? 'font-mono text-2xl' : ''}`}>
-        {value}
-      </div>
+      <div className="text-3xl font-semibold tracking-tight text-zinc-100">{value}</div>
       <div className="mt-1 text-[12px] uppercase tracking-wider text-zinc-500">{label}</div>
     </div>
   );
