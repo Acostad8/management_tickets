@@ -1,6 +1,7 @@
 package co.edu.ufpso.sistemasintegrados.tickets.bootstrap;
 
 import co.edu.ufpso.sistemasintegrados.tickets.domain.Cliente;
+import co.edu.ufpso.sistemasintegrados.tickets.domain.Empleado;
 import co.edu.ufpso.sistemasintegrados.tickets.domain.PasswordResetToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +32,7 @@ public class IndexInitializer {
     public void initIndexes() {
         ensurePasswordResetTokenIndexes();
         ensureClienteIndexes();
+        ensureEmpleadoIndexes();
     }
 
     private void ensurePasswordResetTokenIndexes() {
@@ -56,6 +58,19 @@ public class IndexInitializer {
             log.info("Índices verificados en collection clientes");
         } catch (Exception ex) {
             log.warn("No se pudieron crear/verificar índices en clientes: {}", ex.getMessage());
+        }
+    }
+
+    private void ensureEmpleadoIndexes() {
+        IndexOperations ops = mongoTemplate.indexOps(Empleado.class);
+        try {
+            ops.ensureIndex(new Index().on("codigoEmpleado", Sort.Direction.ASC).unique());
+            ops.ensureIndex(new Index().on("usuarioId", Sort.Direction.ASC).unique());
+            Document keys = new Document().append("especialidad", 1).append("estado", 1);
+            ops.ensureIndex(new CompoundIndexDefinition(keys).named("especialidad_1_estado_1"));
+            log.info("Índices verificados en collection empleados");
+        } catch (Exception ex) {
+            log.warn("No se pudieron crear/verificar índices en empleados: {}", ex.getMessage());
         }
     }
 }
