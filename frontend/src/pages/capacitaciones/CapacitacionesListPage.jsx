@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Search, X, Plus, Pencil, Trash2, Eye, GraduationCap, Calendar, Users, CheckCircle2, Shuffle } from 'lucide-react';
+import { Search, X, Plus, Pencil, Eye, GraduationCap, Calendar, Users, CheckCircle2, Shuffle } from 'lucide-react';
 import { capacitacionesService } from '../../services/capacitaciones';
 import { Badge } from '../../components/ui/Badge';
 import { Pagination } from '../../components/ui/Pagination';
-import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { CapacitacionFormModal } from './CapacitacionFormModal';
 import { CapacitacionDetailModal } from './CapacitacionDetailModal';
@@ -39,7 +38,6 @@ export function CapacitacionesListPage() {
   const [editing, setEditing] = useState(null);
   const [viewing, setViewing] = useState(null);
   const [changingEstado, setChangingEstado] = useState(null);
-  const [confirmDelete, setConfirmDelete] = useState(null);
   const hasPermission = useAuthStore((s) => s.hasPermission);
 
   const load = () => {
@@ -62,22 +60,6 @@ export function CapacitacionesListPage() {
   const openDetail = (c) => { setViewing(c); setDetailOpen(true); };
 
   const openChangeEstado = (c) => setChangingEstado(c);
-  const requestDelete = (c) => setConfirmDelete(c);
-
-  const doDelete = async () => {
-    const c = confirmDelete;
-    if (!c) return;
-    setError(''); setBusyId(c.id);
-    try {
-      await capacitacionesService.remove(c.id);
-      load();
-      setConfirmDelete(null);
-    } catch (err) {
-      setError(err.response?.data?.message || 'No se pudo eliminar. Verificá que la capacitación no tenga asistencias registradas.');
-    } finally {
-      setBusyId(null);
-    }
-  };
 
   const stats = useMemo(() => {
     const rows = data?.content || [];
@@ -235,15 +217,6 @@ export function CapacitacionesListPage() {
                             </button>
                           </>
                         )}
-                        {hasPermission('capacitaciones.eliminar') && (
-                          <button
-                            onClick={() => requestDelete(c)}
-                            disabled={busyId === c.id}
-                            className="inline-flex items-center gap-1 rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[11.5px] text-red-300 transition hover:border-red-500/50 hover:bg-red-500/15 disabled:opacity-40"
-                          >
-                            <Trash2 size={11} /> Eliminar
-                          </button>
-                        )}
                       </div>
                     </td>
                   </tr>
@@ -276,27 +249,6 @@ export function CapacitacionesListPage() {
         capacitacion={changingEstado}
       />
 
-      <ConfirmDialog
-        open={Boolean(confirmDelete)}
-        onClose={() => setConfirmDelete(null)}
-        onConfirm={doDelete}
-        title="Eliminar capacitación"
-        message={
-          (confirmDelete?.asistenciasRegistradas || 0) > 0
-            ? 'Esta capacitación tiene asistencias registradas. Solo se pueden eliminar capacitaciones sin asistencias; cambialá a cancelada para conservar el histórico.'
-            : 'Esta acción es irreversible. La capacitación dejará de existir en el sistema.'
-        }
-        details={confirmDelete ? {
-          Título: confirmDelete.titulo,
-          Modalidad: confirmDelete.modalidad,
-          Estado: confirmDelete.estado,
-          'Asistencias registradas': confirmDelete.asistenciasRegistradas || 0,
-        } : null}
-        confirmLabel="Eliminar"
-        variant="danger"
-        loading={busyId === confirmDelete?.id}
-        icon={Trash2}
-      />
     </div>
   );
 }

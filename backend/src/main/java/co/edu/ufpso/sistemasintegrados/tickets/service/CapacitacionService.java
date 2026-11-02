@@ -118,15 +118,6 @@ public class CapacitacionService {
         return enrich(capacitacionRepository.save(c));
     }
 
-    public void delete(String id) {
-        Capacitacion c = findOrThrow(id);
-        long asistencias = asistenciaRepository.countByCapacitacionId(id);
-        if (asistencias > 0) {
-            throw new BusinessException("No se puede eliminar: existen " + asistencias + " asistencia(s) registrada(s)");
-        }
-        capacitacionRepository.delete(c);
-    }
-
     public CapacitacionResponse changeEstado(String id, EstadoCapacitacion nuevo) {
         Capacitacion c = findOrThrow(id);
         c.setEstado(nuevo);
