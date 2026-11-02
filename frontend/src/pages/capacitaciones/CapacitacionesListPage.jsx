@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Search, X, Plus, Pencil, Trash2, Eye, GraduationCap, Calendar, Users, CheckCircle2 } from 'lucide-react';
+import { Search, X, Plus, Pencil, Trash2, Eye, GraduationCap, Calendar, Users, CheckCircle2, Shuffle } from 'lucide-react';
 import { capacitacionesService } from '../../services/capacitaciones';
 import { Badge } from '../../components/ui/Badge';
 import { Pagination } from '../../components/ui/Pagination';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { CapacitacionFormModal } from './CapacitacionFormModal';
 import { CapacitacionDetailModal } from './CapacitacionDetailModal';
+import { ChangeEstadoCapacitacionModal } from './ChangeEstadoCapacitacionModal';
 
 const MODULOS = ['ventas_online', 'inventarios', 'compras', 'produccion', 'ventas_sitio'];
 const MODALIDADES = ['masiva', 'personalizada'];
@@ -36,6 +38,8 @@ export function CapacitacionesListPage() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [viewing, setViewing] = useState(null);
+  const [changingEstado, setChangingEstado] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
   const hasPermission = useAuthStore((s) => s.hasPermission);
 
   const load = () => {
@@ -57,26 +61,19 @@ export function CapacitacionesListPage() {
   const openEdit = (c) => { setEditing(c); setModalOpen(true); };
   const openDetail = (c) => { setViewing(c); setDetailOpen(true); };
 
-  const changeEstado = async (c, next) => {
-    setError(''); setBusyId(c.id);
-    try {
-      await capacitacionesService.cambiarEstado(c.id, next);
-      load();
-    } catch (err) {
-      setError(err.response?.data?.message || 'No se pudo cambiar el estado.');
-    } finally {
-      setBusyId(null);
-    }
-  };
+  const openChangeEstado = (c) => setChangingEstado(c);
+  const requestDelete = (c) => setConfirmDelete(c);
 
-  const remove = async (c) => {
-    if (!window.confirm(`¿Eliminar capacitación "${c.titulo}"?`)) return;
+  const doDelete = async () => {
+    const c = confirmDelete;
+    if (!c) return;
     setError(''); setBusyId(c.id);
     try {
       await capacitacionesService.remove(c.id);
       load();
+      setConfirmDelete(null);
     } catch (err) {
-      setError(err.response?.data?.message || 'No se pudo eliminar. Verifica asistencias registradas.');
+      setError(err.response?.data?.message || 'No se pudo eliminar. Verificá que la capacitación no tenga asistencias registradas.');
     } finally {
       setBusyId(null);
     }
@@ -229,12 +226,18 @@ export function CapacitacionesListPage() {
                             >
                               <Pencil size={11} /> Editar
                             </button>
-                            <EstadoDropdown current={c.estado} disabled={busyId === c.id} onChange={(e) => changeEstado(c, e)} />
+                            <button
+                              onClick={() => openChangeEstado(c)}
+                              disabled={busyId === c.id}
+                              className="inline-flex items-center gap-1 rounded-md border border-brand-500/30 bg-brand-500/10 px-2.5 py-1 text-[11.5px] text-brand-200 transition hover:border-brand-500/50 hover:bg-brand-500/15 disabled:opacity-40"
+                            >
+                              <Shuffle size={11} /> Cambiar estado
+                            </button>
                           </>
                         )}
                         {hasPermission('capacitaciones.eliminar') && (
                           <button
-                            onClick={() => remove(c)}
+                            onClick={() => requestDelete(c)}
                             disabled={busyId === c.id}
                             className="inline-flex items-center gap-1 rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[11.5px] text-red-300 transition hover:border-red-500/50 hover:bg-red-500/15 disabled:opacity-40"
                           >
@@ -265,21 +268,36 @@ export function CapacitacionesListPage() {
         onChanged={load}
         capacitacion={viewing}
       />
-    </div>
-  );
-}
 
-function EstadoDropdown({ current, disabled, onChange }) {
-  return (
-    <select
-      value={current}
-      disabled={disabled}
-      onChange={(e) => { if (e.target.value !== current) onChange(e.target.value); }}
-      className="rounded-md border border-zinc-800 bg-zinc-900/60 px-2 py-1 text-[11.5px] text-zinc-300 focus:border-brand-500 focus:outline-none disabled:opacity-40"
-      title="Cambiar estado"
-    >
-      {ESTADOS.map((o) => <option key={o} value={o}>{o}</option>)}
-    </select>
+      <ChangeEstadoCapacitacionModal
+        open={Boolean(changingEstado)}
+        onClose={() => setChangingEstado(null)}
+        onSaved={load}
+        capacitacion={changingEstado}
+      />
+
+      <ConfirmDialog
+        open={Boolean(confirmDelete)}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={doDelete}
+        title="Eliminar capacitación"
+        message={
+          (confirmDelete?.asistenciasRegistradas || 0) > 0
+            ? 'Esta capacitación tiene asistencias registradas. Solo se pueden eliminar capacitaciones sin asistencias; cambialá a cancelada para conservar el histórico.'
+            : 'Esta acción es irreversible. La capacitación dejará de existir en el sistema.'
+        }
+        details={confirmDelete ? {
+          Título: confirmDelete.titulo,
+          Modalidad: confirmDelete.modalidad,
+          Estado: confirmDelete.estado,
+          'Asistencias registradas': confirmDelete.asistenciasRegistradas || 0,
+        } : null}
+        confirmLabel="Eliminar"
+        variant="danger"
+        loading={busyId === confirmDelete?.id}
+        icon={Trash2}
+      />
+    </div>
   );
 }
 
