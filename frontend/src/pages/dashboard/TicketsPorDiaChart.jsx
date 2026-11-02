@@ -1,9 +1,11 @@
 export function TicketsPorDiaChart({ data }) {
   if (!data || data.length === 0) {
     return (
-      <div className="card">
-        <h3 className="mb-2 text-[13px] font-medium text-slate-700 dark:text-slate-200">Actividad de tickets</h3>
-        <p className="text-[13px] text-slate-500">Sin datos aún</p>
+      <div className="border border-zinc-900 bg-zinc-950 p-5">
+        <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+          Actividad reciente
+        </h3>
+        <p className="text-[13px] text-zinc-500">Sin datos aún</p>
       </div>
     );
   }
@@ -13,29 +15,31 @@ export function TicketsPorDiaChart({ data }) {
   const avg = (total / data.length).toFixed(1);
 
   return (
-    <div className="card">
-      <div className="mb-4 flex items-end justify-between">
+    <div className="border border-zinc-900 bg-zinc-950 p-5">
+      <div className="mb-5 flex items-end justify-between">
         <div>
-          <h3 className="text-[13px] font-medium text-slate-700 dark:text-slate-200">
-            Actividad de tickets
+          <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+            Actividad reciente
           </h3>
-          <p className="mt-0.5 text-[12px] text-slate-500">últimos {data.length} días con actividad</p>
+          <p className="mt-1 text-[12px] text-zinc-500">
+            {data.length} días con actividad
+          </p>
         </div>
         <div className="text-right">
-          <div className="text-[11px] uppercase tracking-wider text-slate-500">Promedio</div>
-          <div className="font-mono text-lg font-semibold tabular-nums text-slate-900 dark:text-slate-100">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-500">Promedio</div>
+          <div className="mt-0.5 font-mono text-lg font-medium tabular-nums text-zinc-100">
             {avg}
           </div>
         </div>
       </div>
 
-      <div className="flex h-32 items-end gap-1.5">
+      <div className="flex h-36 items-end gap-1.5">
         {data.map((d) => {
           const h = Math.max(4, (d.count / max) * 100);
           return (
             <div key={d.fecha} className="group relative flex h-full flex-1 flex-col items-center justify-end">
               <div
-                className="w-full rounded-sm bg-brand-500/70 transition group-hover:bg-brand-400 dark:bg-brand-500/60"
+                className="w-full rounded-sm bg-brand-500/60 transition group-hover:bg-brand-400"
                 style={{ height: `${h}%` }}
                 title={`${d.fecha} · ${d.count} ticket(s)`}
               />
@@ -44,7 +48,7 @@ export function TicketsPorDiaChart({ data }) {
         })}
       </div>
 
-      <div className="mt-2 flex justify-between font-mono text-[10px] tabular-nums text-slate-500">
+      <div className="mt-3 flex justify-between font-mono text-[10px] tabular-nums text-zinc-600">
         <span>{data[0].fecha}</span>
         <span>{data[data.length - 1].fecha}</span>
       </div>

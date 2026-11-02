@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Ticket, CheckCircle2, Clock, BookOpen, Plus, Search, ArrowRight,
+  Ticket, CheckCircle2, Clock, BookOpen, Plus, ArrowRight,
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuthStore } from '../stores/useAuthStore';
@@ -11,7 +11,7 @@ import { TicketsPorDiaChart } from './dashboard/TicketsPorDiaChart';
 import { TicketsRecientes } from './dashboard/TicketsRecientes';
 
 const PRIORIDAD_COLORS = {
-  baja:    'bg-slate-400',
+  baja:    'bg-zinc-500',
   media:   'bg-sky-500',
   alta:    'bg-orange-500',
   critica: 'bg-red-500',
@@ -48,60 +48,71 @@ export function DashboardPage() {
   }, []);
 
   if (error) {
-    return <div className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300">{error}</div>;
+    return (
+      <div className="rounded-md border border-red-900/50 bg-red-950/40 px-4 py-3 text-sm text-red-300">
+        {error}
+      </div>
+    );
   }
   if (!summary) {
-    return <div className="animate-pulse text-sm text-slate-500">Cargando resumen…</div>;
+    return <div className="animate-pulse text-[13px] text-zinc-500">Cargando resumen…</div>;
   }
 
-  const greeting = greet(user?.nombre);
-
   return (
-    <div className="space-y-6">
-      <header className="flex flex-col gap-2 border-b border-slate-200 pb-5 dark:border-slate-800 sm:flex-row sm:items-end sm:justify-between">
+    <div className="space-y-10">
+      <header className="flex flex-col gap-5 border-b border-zinc-900 pb-8 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
-            {greeting}, {user?.nombre || 'equipo'}.
+          <h1 className="text-[32px] font-semibold leading-tight tracking-tight text-zinc-50">
+            {greet()}, {user?.nombre || 'equipo'}.
           </h1>
-          <p className="mt-1 text-[13.5px] text-slate-500 dark:text-slate-400">
-            Esto es lo que pasa en el panel de soporte ahora mismo.
+          <p className="mt-2 text-[14px] text-zinc-400">
+            Un vistazo rápido al estado del panel de soporte.
           </p>
         </div>
-        <QuickActions hasPermission={hasPermission} />
+        <div className="flex flex-wrap items-center gap-2">
+          {hasPermission('tickets.crear') && (
+            <Link to="/tickets/nuevo" className="btn-primary">
+              <Plus size={14} /> Nuevo ticket
+            </Link>
+          )}
+          <Link to="/tickets" className="btn-secondary">
+            Ver tickets <ArrowRight size={13} />
+          </Link>
+        </div>
       </header>
 
-      <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <section className="grid grid-cols-2 gap-px bg-zinc-900 lg:grid-cols-4">
         <StatCard
-          label="Tickets abiertos"
+          label="Abiertos"
           value={summary.ticketsAbiertos}
           icon={Clock}
-          accent="bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
+          accent="text-amber-400"
           hint={`${summary.ticketsNuevos} nuevos · ${summary.ticketsEnProceso} en proceso`}
         />
         <StatCard
           label="Resueltos"
           value={summary.ticketsResueltos}
           icon={CheckCircle2}
-          accent="bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
+          accent="text-emerald-400"
           hint={`${summary.ticketsCerrados} cerrados históricamente`}
         />
         <StatCard
           label="Total de tickets"
           value={summary.totalTickets}
           icon={Ticket}
-          accent="bg-brand-100 text-brand-700 dark:bg-brand-950/40 dark:text-brand-300"
+          accent="text-brand-400"
           hint="Toda la historia del sistema"
         />
         <StatCard
           label="Artículos en base"
           value={summary.totalArticulosKb}
           icon={BookOpen}
-          accent="bg-indigo-100 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300"
+          accent="text-indigo-400"
           hint={`${summary.totalClientes} clientes · ${summary.totalUsuarios} usuarios`}
         />
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-3">
+      <section className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <TicketsPorDiaChart data={porDia} />
         </div>
@@ -112,7 +123,7 @@ export function DashboardPage() {
         />
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-2">
+      <section className="grid gap-6 lg:grid-cols-2">
         <BreakdownBars
           title="Por módulo del ERP"
           rows={summary.ticketsPorModulo}
@@ -124,27 +135,9 @@ export function DashboardPage() {
   );
 }
 
-function greet(nombre) {
+function greet() {
   const h = new Date().getHours();
   if (h < 12) return 'Buenos días';
   if (h < 19) return 'Buenas tardes';
   return 'Buenas noches';
-}
-
-function QuickActions({ hasPermission }) {
-  return (
-    <div className="flex flex-wrap items-center gap-2">
-      {hasPermission('tickets.crear') && (
-        <Link to="/tickets/nuevo" className="btn-primary">
-          <Plus size={14} /> Nuevo ticket
-        </Link>
-      )}
-      <Link to="/base-conocimiento" className="btn-secondary">
-        <Search size={14} /> Buscar en base
-      </Link>
-      <Link to="/tickets" className="inline-flex items-center gap-1 text-[13px] text-brand-600 hover:underline dark:text-brand-400">
-        Ver tickets <ArrowRight size={12} />
-      </Link>
-    </div>
-  );
 }
