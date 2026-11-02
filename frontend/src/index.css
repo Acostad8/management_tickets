@@ -12,10 +12,35 @@ html, body, #root {
 
 body {
   @apply bg-slate-50 text-slate-900 antialiased;
+  font-feature-settings: "cv11", "ss01", "ss03";
 }
 
 html.dark body {
   @apply bg-slate-950 text-slate-100;
+}
+
+body.landing {
+  @apply bg-zinc-950 text-zinc-100;
+}
+
+body.landing ::selection {
+  background: #1b6ff2;
+  color: #ffffff;
+}
+
+body.landing *::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+body.landing *::-webkit-scrollbar-track {
+  background: #09090b;
+}
+body.landing *::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 10px;
+}
+body.landing *::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
 }
 
 @layer components {
