@@ -41,7 +41,7 @@ public class DataSeeder {
                         "tickets.asignar", "tickets.actualizar_estado", "tickets.responder",
                         "base_conocimiento.crear", "base_conocimiento.leer",
                         "base_conocimiento.actualizar", "base_conocimiento.eliminar",
-                        "membresias.crear", "membresias.leer", "membresias.actualizar", "membresias.eliminar",
+                        "membresias.crear", "membresias.leer", "membresias.actualizar",
                         "pagos.crear", "pagos.leer", "pagos.actualizar", "pagos.eliminar",
                         "capacitaciones.crear", "capacitaciones.leer", "capacitaciones.actualizar", "capacitaciones.eliminar",
                         "asistencias.leer", "asistencias.registrar", "asistencias.eliminar",

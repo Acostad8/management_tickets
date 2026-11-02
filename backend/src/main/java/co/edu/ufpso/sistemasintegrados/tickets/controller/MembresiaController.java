@@ -63,13 +63,6 @@ public class MembresiaController {
         return ResponseEntity.ok(service.update(id, req));
     }
 
-    @DeleteMapping("/{id}")
-    @PreAuthorize("@perms.has('membresias.eliminar')")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
-        service.delete(id);
-        return ResponseEntity.noContent().build();
-    }
-
     @PatchMapping("/{id}/estado")
     @PreAuthorize("@perms.has('membresias.actualizar')")
     public ResponseEntity<MembresiaResponse> changeEstado(@PathVariable String id,
