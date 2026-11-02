@@ -1,19 +1,31 @@
-import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { LogIn } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { ArrowLeft, ArrowRight, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuthStore } from '../stores/useAuthStore';
+import { LogoMark } from '../components/Logo';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const setSession = useAuthStore((s) => s.setSession);
   const navigate = useNavigate();
   const location = useLocation();
-
   const from = location.state?.from?.pathname || '/dashboard';
+
+  useEffect(() => {
+    document.body.classList.add('landing');
+    const root = document.documentElement;
+    const hadDark = root.classList.contains('dark');
+    root.classList.add('dark');
+    return () => {
+      document.body.classList.remove('landing');
+      if (!hadDark) root.classList.remove('dark');
+    };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,7 +36,9 @@ export function LoginPage() {
       setSession(data);
       navigate(from, { replace: true });
     } catch (err) {
-      const msg = err.response?.data?.message || 'No se pudo iniciar sesión';
+      const status = err.response?.status;
+      const msg = err.response?.data?.message
+        || (status === 423 ? 'Cuenta bloqueada por múltiples intentos fallidos.' : 'No se pudo iniciar sesión.');
       setError(msg);
     } finally {
       setLoading(false);
@@ -32,46 +46,127 @@ export function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100 p-4 dark:bg-slate-950">
-      <div className="w-full max-w-md">
-        <div className="mb-6 text-center">
-          <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Sistemas Integrados S.A.</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Panel de soporte técnico</p>
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 antialiased">
+      <GridBackdrop />
+
+      <nav className="relative z-10 flex items-center justify-between px-6 py-5 sm:px-10">
+        <Link to="/" className="inline-flex items-center gap-1.5 text-[13px] text-zinc-500 transition hover:text-zinc-200">
+          <ArrowLeft size={14} /> Volver al inicio
+        </Link>
+        <Link to="/" className="inline-flex items-center gap-2.5">
+          <LogoMark size={20} className="text-brand-500" />
+          <span className="text-[13px] font-medium text-zinc-300">Sistemas Integrados <span className="text-zinc-500">S.A.</span></span>
+        </Link>
+      </nav>
+
+      <main className="relative z-10 mx-auto flex min-h-[calc(100vh-72px)] max-w-md flex-col justify-center px-6 pb-16">
+        <div className="mb-10">
+          <h1 className="text-3xl font-semibold tracking-tight text-zinc-50">Ingresa al panel</h1>
+          <p className="mt-2 text-[14px] text-zinc-400">
+            Usa tu correo corporativo y la contraseña asignada por tu administrador.
+          </p>
         </div>
-        <form onSubmit={handleSubmit} className="card space-y-4">
+
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="label" htmlFor="email">Correo electrónico</label>
+            <label htmlFor="email" className="mb-1.5 block text-[12px] font-medium uppercase tracking-wider text-zinc-500">
+              Correo electrónico
+            </label>
             <input
               id="email"
               type="email"
-              className="input"
-              placeholder="correo@empresa.com"
+              autoComplete="email"
+              required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
+              placeholder="tucorreo@empresa.com"
+              className="w-full rounded-md border border-zinc-800 bg-zinc-900/60 px-3.5 py-2.5 text-[14px] text-zinc-100 placeholder:text-zinc-600 transition focus:border-brand-500 focus:bg-zinc-900 focus:outline-none focus:ring-1 focus:ring-brand-500/50"
             />
           </div>
+
           <div>
-            <label className="label" htmlFor="password">Contraseña</label>
-            <input
-              id="password"
-              type="password"
-              className="input"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-            />
+            <div className="mb-1.5 flex items-center justify-between">
+              <label htmlFor="password" className="block text-[12px] font-medium uppercase tracking-wider text-zinc-500">
+                Contraseña
+              </label>
+              <Link to="/login" className="text-[12px] text-zinc-500 transition hover:text-zinc-300">
+                ¿Olvidaste?
+              </Link>
+            </div>
+            <div className="relative">
+              <input
+                id="password"
+                type={showPwd ? 'text' : 'password'}
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full rounded-md border border-zinc-800 bg-zinc-900/60 px-3.5 py-2.5 pr-11 text-[14px] text-zinc-100 placeholder:text-zinc-600 transition focus:border-brand-500 focus:bg-zinc-900 focus:outline-none focus:ring-1 focus:ring-brand-500/50"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPwd((v) => !v)}
+                className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-zinc-500 transition hover:text-zinc-200"
+                aria-label={showPwd ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                tabIndex={-1}
+              >
+                {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
           </div>
-          {error && <div className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/50 dark:text-red-300">{error}</div>}
-          <button type="submit" className="btn-primary w-full" disabled={loading}>
-            <LogIn size={16} />
-            {loading ? 'Ingresando...' : 'Ingresar'}
+
+          {error && (
+            <div className="flex items-start gap-2.5 rounded-md border border-red-900/50 bg-red-950/40 px-3.5 py-2.5 text-[13px] text-red-300">
+              <AlertCircle size={14} className="mt-0.5 flex-shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="group inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-zinc-50 text-[14px] font-medium text-zinc-950 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {loading ? (
+              <span className="inline-flex items-center gap-2">
+                <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-zinc-900/30 border-t-zinc-900" />
+                Verificando…
+              </span>
+            ) : (
+              <>
+                Ingresar
+                <ArrowRight size={16} className="transition group-hover:translate-x-0.5" />
+              </>
+            )}
           </button>
         </form>
-      </div>
+
+        <div className="mt-10 rounded-md border border-zinc-900 bg-zinc-900/40 p-4">
+          <div className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">
+            Cuenta de demostración
+          </div>
+          <div className="mt-2 flex flex-col gap-0.5 text-[12.5px] text-zinc-300">
+            <span className="font-mono">admin@sistemasintegrados.co</span>
+            <span className="font-mono">Admin1234!</span>
+          </div>
+        </div>
+      </main>
     </div>
+  );
+}
+
+function GridBackdrop() {
+  return (
+    <div
+      className="pointer-events-none fixed inset-0 opacity-[0.14]"
+      style={{
+        backgroundImage:
+          'linear-gradient(to right, #27272a 1px, transparent 1px), linear-gradient(to bottom, #27272a 1px, transparent 1px)',
+        backgroundSize: '64px 64px',
+        maskImage: 'radial-gradient(ellipse 70% 60% at 50% 30%, black 30%, transparent 100%)',
+      }}
+      aria-hidden
+    />
   );
 }

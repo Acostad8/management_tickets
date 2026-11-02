@@ -1,15 +1,11 @@
 import { Link } from 'react-router-dom';
+import { Logo } from '../../components/Logo';
 
 export function LandingNav({ authenticated }) {
   return (
     <nav className="sticky top-0 z-30 border-b border-zinc-900/80 bg-zinc-950/80 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
-        <div className="flex items-center gap-2.5">
-          <div className="h-5 w-5 rounded-sm bg-brand-500" aria-hidden />
-          <span className="text-[13px] font-medium tracking-tight text-zinc-100">
-            Sistemas Integrados <span className="text-zinc-500">S.A.</span>
-          </span>
-        </div>
+        <Logo variant="brand" size={22} />
         <div className="flex items-center gap-6 text-[13px]">
           <a href="#para-quien"    className="text-zinc-400 transition hover:text-zinc-100">Para quién</a>
           <a href="#incluye"       className="text-zinc-400 transition hover:text-zinc-100">Qué incluye</a>
