@@ -3,6 +3,7 @@ import { Search, X, Plus, Pencil, Trash2, Power, Users, CheckCircle2, XCircle, W
 import { empleadosService } from '../../services/empleados';
 import { Badge } from '../../components/ui/Badge';
 import { Pagination } from '../../components/ui/Pagination';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { EmpleadoFormModal } from './EmpleadoFormModal';
 
@@ -30,6 +31,8 @@ export function EmpleadosListPage() {
   const [busyId, setBusyId] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [confirmToggle, setConfirmToggle] = useState(null);
   const hasPermission = useAuthStore((s) => s.hasPermission);
 
   const load = () => {
@@ -50,12 +53,18 @@ export function EmpleadosListPage() {
   const openCreate = () => { setEditing(null); setModalOpen(true); };
   const openEdit = (e) => { setEditing(e); setModalOpen(true); };
 
-  const toggleEstado = async (e) => {
+  const requestToggle = (e) => setConfirmToggle(e);
+  const requestDelete = (e) => setConfirmDelete(e);
+
+  const doToggleEstado = async () => {
+    const e = confirmToggle;
+    if (!e) return;
     setError(''); setBusyId(e.id);
     const next = e.estado === 'activo' ? 'inactivo' : 'activo';
     try {
       await empleadosService.cambiarEstado(e.id, next);
       load();
+      setConfirmToggle(null);
     } catch (err) {
       setError(err.response?.data?.message || 'No se pudo cambiar el estado.');
     } finally {
@@ -63,12 +72,14 @@ export function EmpleadosListPage() {
     }
   };
 
-  const remove = async (e) => {
-    if (!window.confirm(`¿Eliminar empleado ${e.codigoEmpleado}? Esta acción no se puede deshacer.`)) return;
+  const doDelete = async () => {
+    const e = confirmDelete;
+    if (!e) return;
     setError(''); setBusyId(e.id);
     try {
       await empleadosService.remove(e.id);
       load();
+      setConfirmDelete(null);
     } catch (err) {
       setError(err.response?.data?.message || 'No se pudo eliminar. Verifica tickets asignados.');
     } finally {
@@ -214,7 +225,7 @@ export function EmpleadosListPage() {
                               <Pencil size={11} /> Editar
                             </button>
                             <button
-                              onClick={() => toggleEstado(e)}
+                              onClick={() => requestToggle(e)}
                               disabled={busyId === e.id}
                               className="inline-flex items-center gap-1 rounded-md border border-zinc-800 bg-zinc-900/60 px-2.5 py-1 text-[11.5px] text-zinc-300 transition hover:border-zinc-700 hover:bg-zinc-900 disabled:opacity-40"
                             >
@@ -224,7 +235,7 @@ export function EmpleadosListPage() {
                         )}
                         {hasPermission('empleados.eliminar') && (
                           <button
-                            onClick={() => remove(e)}
+                            onClick={() => requestDelete(e)}
                             disabled={busyId === e.id}
                             className="inline-flex items-center gap-1 rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[11.5px] text-red-300 transition hover:border-red-500/50 hover:bg-red-500/15 disabled:opacity-40"
                           >
@@ -247,6 +258,46 @@ export function EmpleadosListPage() {
         onClose={() => setModalOpen(false)}
         onSaved={load}
         empleado={editing}
+      />
+
+      <ConfirmDialog
+        open={Boolean(confirmDelete)}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={doDelete}
+        title="Eliminar empleado"
+        message="Esta acción es irreversible. Si el empleado tiene tickets asignados, el backend rechazará la operación."
+        details={confirmDelete ? {
+          Código: confirmDelete.codigoEmpleado,
+          Nombre: `${confirmDelete.nombre || ''} ${confirmDelete.apellido || ''}`.trim(),
+          Área: confirmDelete.area,
+          Estado: confirmDelete.estado,
+        } : null}
+        confirmLabel="Eliminar"
+        variant="danger"
+        loading={busyId === confirmDelete?.id}
+        icon={Trash2}
+      />
+
+      <ConfirmDialog
+        open={Boolean(confirmToggle)}
+        onClose={() => setConfirmToggle(null)}
+        onConfirm={doToggleEstado}
+        title={confirmToggle?.estado === 'activo' ? 'Desactivar empleado' : 'Activar empleado'}
+        message={
+          confirmToggle?.estado === 'activo'
+            ? 'El empleado quedará inactivo. No se le podrán asignar nuevos tickets mientras esté en este estado.'
+            : 'El empleado volverá al estado activo y podrá recibir asignaciones.'
+        }
+        details={confirmToggle ? {
+          Código: confirmToggle.codigoEmpleado,
+          Nombre: `${confirmToggle.nombre || ''} ${confirmToggle.apellido || ''}`.trim(),
+          'Estado actual': confirmToggle.estado,
+          'Nuevo estado': confirmToggle.estado === 'activo' ? 'inactivo' : 'activo',
+        } : null}
+        confirmLabel={confirmToggle?.estado === 'activo' ? 'Desactivar' : 'Activar'}
+        variant={confirmToggle?.estado === 'activo' ? 'warning' : 'info'}
+        loading={busyId === confirmToggle?.id}
+        icon={Power}
       />
     </div>
   );
