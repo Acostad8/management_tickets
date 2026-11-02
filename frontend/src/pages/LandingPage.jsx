@@ -3,9 +3,10 @@ import { Navigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/useAuthStore';
 import { LandingNav } from './landing/LandingNav';
 import { HeroSection } from './landing/HeroSection';
-import { ModulosSection } from './landing/ModulosSection';
-import { PolimorfismoSection } from './landing/PolimorfismoSection';
-import { AnalyticsSection } from './landing/AnalyticsSection';
+import { AudienciasSection } from './landing/AudienciasSection';
+import { IncluyeSection } from './landing/IncluyeSection';
+import { ComoFuncionaSection } from './landing/ComoFuncionaSection';
+import { BeneficiosSection } from './landing/BeneficiosSection';
 import { LandingFooter } from './landing/LandingFooter';
 
 export function LandingPage() {
@@ -26,9 +27,10 @@ export function LandingPage() {
     <div className="min-h-screen bg-zinc-950 font-sans text-zinc-100 antialiased">
       <LandingNav authenticated={authenticated} />
       <HeroSection authenticated={authenticated} />
-      <ModulosSection />
-      <PolimorfismoSection />
-      <AnalyticsSection />
+      <AudienciasSection />
+      <IncluyeSection />
+      <ComoFuncionaSection />
+      <BeneficiosSection />
       <LandingFooter authenticated={authenticated} />
     </div>
   );

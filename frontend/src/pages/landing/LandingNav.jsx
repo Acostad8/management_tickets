@@ -11,9 +11,9 @@ export function LandingNav({ authenticated }) {
           </span>
         </div>
         <div className="flex items-center gap-6 text-[13px]">
-          <a href="#modulos"       className="text-zinc-400 transition hover:text-zinc-100">Módulos</a>
-          <a href="#polimorfismo"  className="text-zinc-400 transition hover:text-zinc-100">Polimorfismo</a>
-          <a href="#analytics"     className="text-zinc-400 transition hover:text-zinc-100">Analytics</a>
+          <a href="#para-quien"    className="text-zinc-400 transition hover:text-zinc-100">Para quién</a>
+          <a href="#incluye"       className="text-zinc-400 transition hover:text-zinc-100">Qué incluye</a>
+          <a href="#como-funciona" className="text-zinc-400 transition hover:text-zinc-100">Cómo funciona</a>
           <Link
             to={authenticated ? '/dashboard' : '/login'}
             className="rounded-md border border-zinc-800 bg-zinc-900 px-3 py-1.5 font-medium text-zinc-100 transition hover:border-zinc-700 hover:bg-zinc-800"
