@@ -9,6 +9,10 @@
 |**5**|**empleados**|Perfil técnico del personal de soporte|
 |**6**|**tickets**|Incidentes y sugerencias (polimórfico)|
 |**7**|**base_conocimiento**|Artículos de soporte con búsqueda full-text|
+|**8**|**membresias**|Planes contratados por cliente con módulos ERP activos|
+|**9**|**pagos**|Historial de pagos de clientes (transaccional con membresías)|
+|**10**|**capacitaciones**|Sesiones de formación masivas o personalizadas|
+|**11**|**asistencias**|Registro de participantes a capacitaciones|
 
 
 
@@ -259,4 +263,306 @@ db.base_conocimiento.createIndex({ modulo: 1, estado: 1 })
 { 
 
 "titulo":   "Cómo solucionar error 500 en pasarela de pago", "contenido": "Pasos para diagnosticar y resolver el error 500...", "modulo":   "ventas_online", "etiquetas": ["pasarela", "pago", "error 500"], "ticketOrigenId": ObjectId("..."), "autorId":  ObjectId("..."), "vistas":   45, "utilidad": 12, "estado":   "publicado", "fechaCreacion":    "2025-01-20T10:00:00Z", "fechaActualizacion": "2025-01-20T10:00:00Z" } 
+
+
+# **8. Colección: membresias**
+
+**Estructura de Campos**
+
+|**Campo**|**Tipo**|**Descripción**|
+|---|---|---|
+|_id|ObjectId|Clave primaria|
+|clienteId|ObjectId|Referencia al cliente contratante|
+|plan|string|Nombre del plan (Básico, Profesional, Enterprise, etc.)|
+|modulosContratados|array|Módulos ERP activos para el cliente|
+|estado|string|activa / suspendida / vencida / cancelada|
+|fechaInicio|date|Fecha de activación de la membresía|
+|fechaVencimiento|date|Fecha límite de vigencia|
+|precio|decimal|Precio pactado del plan|
+|pagoAlDia|bool|Marcado como true al registrar un pago asociado (HU25)|
+|fechaCreacion|date|Fecha de registro|
+|fechaActualizacion|date|Última modificación|
+
+**JSON Schema (Validador de Colección)**
+
+```javascript
+db.createCollection("membresias", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["clienteId", "plan", "modulosContratados", "estado", "fechaInicio", "fechaVencimiento"],
+      properties: {
+        clienteId:          { bsonType: "objectId" },
+        plan:               { bsonType: "string", maxLength: 50 },
+        modulosContratados: {
+          bsonType: "array",
+          minItems: 1,
+          items: { enum: ["ventas_online", "inventarios", "compras", "produccion", "ventas_sitio"] }
+        },
+        estado:             { enum: ["activa", "suspendida", "vencida", "cancelada"] },
+        fechaInicio:        { bsonType: "date" },
+        fechaVencimiento:   { bsonType: "date" },
+        precio:             { bsonType: ["decimal", "double", "int", "long", "null"], minimum: 0 },
+        pagoAlDia:          { bsonType: "bool" },
+        fechaCreacion:      { bsonType: "date" },
+        fechaActualizacion: { bsonType: "date" }
+      }
+    }
+  }
+})
+
+// Índice compuesto para buscar la membresía vigente de un cliente
+db.membresias.createIndex({ clienteId: 1, estado: 1 })
+
+// Índice para alertas de vencimiento próximo
+db.membresias.createIndex({ estado: 1, fechaVencimiento: 1 })
+```
+
+**Inserción de Ejemplo**
+
+```json
+{
+  "clienteId":          { "$oid": "6ab1e5ea504bdc7cdcfd667b" },
+  "plan":               "Profesional",
+  "modulosContratados": ["ventas_online", "inventarios", "ventas_sitio"],
+  "estado":             "activa",
+  "fechaInicio":        { "$date": "2026-01-01T00:00:00.000Z" },
+  "fechaVencimiento":   { "$date": "2027-01-01T00:00:00.000Z" },
+  "precio":             { "$numberDecimal": "1800000" },
+  "pagoAlDia":          true,
+  "fechaCreacion":      { "$date": "2026-01-01T10:00:00.000Z" },
+  "fechaActualizacion": { "$date": "2026-01-15T10:00:00.000Z" }
+}
+```
+
+
+# **9. Colección: pagos**
+
+**Estructura de Campos**
+
+|**Campo**|**Tipo**|**Descripción**|
+|---|---|---|
+|_id|ObjectId|Clave primaria|
+|clienteId|ObjectId|Cliente que realiza el pago|
+|membresiaId|ObjectId \| null|Membresía asociada (opcional)|
+|valor|decimal|Monto pagado|
+|fechaPago|date|Fecha en que se efectuó el pago|
+|medioPago|string|efectivo / transferencia / tarjeta / pse / cheque / otro|
+|referencia|string|Nº de transacción, cheque u otro identificador externo|
+|observaciones|string|Comentarios libres sobre el pago|
+|estado|string|registrado / anulado|
+|registradoPor|ObjectId|Usuario que registró el pago|
+|fechaCreacion|date|Fecha de registro en el sistema|
+|fechaActualizacion|date|Última modificación (anulación, edición)|
+
+**JSON Schema (Validador de Colección)**
+
+```javascript
+db.createCollection("pagos", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["clienteId", "valor", "fechaPago", "medioPago", "estado"],
+      properties: {
+        clienteId:          { bsonType: "objectId" },
+        membresiaId:        { bsonType: ["objectId", "null"] },
+        valor:              { bsonType: ["decimal", "double", "int", "long"], minimum: 0 },
+        fechaPago:          { bsonType: "date" },
+        medioPago:          { enum: ["efectivo", "transferencia", "tarjeta", "pse", "cheque", "otro"] },
+        referencia:         { bsonType: ["string", "null"], maxLength: 80 },
+        observaciones:      { bsonType: ["string", "null"], maxLength: 300 },
+        estado:             { enum: ["registrado", "anulado"] },
+        registradoPor:      { bsonType: ["objectId", "null"] },
+        fechaCreacion:      { bsonType: "date" },
+        fechaActualizacion: { bsonType: "date" }
+      }
+    }
+  }
+})
+
+// Historial de pagos por cliente ordenado por fecha
+db.pagos.createIndex({ clienteId: 1, fechaPago: -1 })
+
+// Pagos asociados a una membresía
+db.pagos.createIndex({ membresiaId: 1 })
+
+// Reportes por rango de fecha
+db.pagos.createIndex({ fechaPago: -1 })
+```
+
+**Nota transaccional (HU25):** la inserción de un documento en `pagos` y la
+actualización de `membresias.pagoAlDia`/`estado` se ejecutan dentro de la
+misma transacción Mongo (`MongoTransactionManager`) para cumplir con
+RF123/RF124 y RNF09 — no debe quedar un pago registrado sin la actualización
+correspondiente de la membresía.
+
+**Inserción de Ejemplo**
+
+```json
+{
+  "clienteId":          { "$oid": "6ab1e5ea504bdc7cdcfd667b" },
+  "membresiaId":        { "$oid": "7ab1e5ea504bdc7cdcfd6690" },
+  "valor":              { "$numberDecimal": "1800000" },
+  "fechaPago":          { "$date": "2026-01-15T00:00:00.000Z" },
+  "medioPago":          "transferencia",
+  "referencia":         "TRX-20260115-0045",
+  "observaciones":      "Pago anualidad 2026",
+  "estado":             "registrado",
+  "registradoPor":      { "$oid": "5ab1e890352fe6fa12baca81" },
+  "fechaCreacion":      { "$date": "2026-01-15T10:00:00.000Z" },
+  "fechaActualizacion": { "$date": "2026-01-15T10:00:00.000Z" }
+}
+```
+
+
+# **10. Colección: capacitaciones**
+
+**Estructura de Campos**
+
+|**Campo**|**Tipo**|**Descripción**|
+|---|---|---|
+|_id|ObjectId|Clave primaria|
+|titulo|string|Título de la capacitación|
+|descripcion|string|Contenido y objetivos|
+|modulo|string \| null|Módulo ERP relacionado (opcional)|
+|modalidad|string|masiva / personalizada|
+|fechaProgramada|date|Fecha y hora de la sesión|
+|duracionMinutos|int|Duración planeada|
+|instructorId|ObjectId \| null|Empleado que dicta la capacitación|
+|clientesInvitados|array|Lista de clientes invitados (vacío en masiva abierta)|
+|cupoMaximo|int \| null|Límite de asistencias|
+|estado|string|programada / en_curso / finalizada / cancelada|
+|fechaCreacion|date|Fecha de registro|
+|fechaActualizacion|date|Última modificación|
+
+**JSON Schema (Validador de Colección)**
+
+```javascript
+db.createCollection("capacitaciones", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["titulo", "descripcion", "modalidad", "fechaProgramada", "estado"],
+      properties: {
+        titulo:             { bsonType: "string", maxLength: 120 },
+        descripcion:        { bsonType: "string", maxLength: 1000 },
+        modulo: {
+          bsonType: ["string", "null"],
+          enum: ["ventas_online", "inventarios", "compras", "produccion", "ventas_sitio", null]
+        },
+        modalidad:          { enum: ["masiva", "personalizada"] },
+        fechaProgramada:    { bsonType: "date" },
+        duracionMinutos:    { bsonType: ["int", "null"], minimum: 1 },
+        instructorId:       { bsonType: ["objectId", "null"] },
+        clientesInvitados:  { bsonType: "array", items: { bsonType: "objectId" } },
+        cupoMaximo:         { bsonType: ["int", "null"], minimum: 1 },
+        estado:             { enum: ["programada", "en_curso", "finalizada", "cancelada"] },
+        fechaCreacion:      { bsonType: "date" },
+        fechaActualizacion: { bsonType: "date" }
+      }
+    }
+  }
+})
+
+// Agenda por estado y fecha
+db.capacitaciones.createIndex({ estado: 1, fechaProgramada: 1 })
+
+// Filtro por modalidad
+db.capacitaciones.createIndex({ modalidad: 1 })
+
+// Multikey — buscar capacitaciones donde participa un cliente
+db.capacitaciones.createIndex({ clientesInvitados: 1 })
+```
+
+**Inserción de Ejemplo**
+
+```json
+{
+  "titulo":             "Capacitación módulo Inventarios v3.2",
+  "descripcion":        "Entrenamiento sobre nuevas funcionalidades...",
+  "modulo":             "inventarios",
+  "modalidad":          "personalizada",
+  "fechaProgramada":    { "$date": "2026-02-10T14:00:00.000Z" },
+  "duracionMinutos":    120,
+  "instructorId":       { "$oid": "6ab1e5ea504bdc7cdcfd6700" },
+  "clientesInvitados":  [
+    { "$oid": "6ab1e5ea504bdc7cdcfd667b" },
+    { "$oid": "6ab1e5ea504bdc7cdcfd667c" }
+  ],
+  "cupoMaximo":         30,
+  "estado":             "programada",
+  "fechaCreacion":      { "$date": "2026-01-20T10:00:00.000Z" },
+  "fechaActualizacion": { "$date": "2026-01-20T10:00:00.000Z" }
+}
+```
+
+
+# **11. Colección: asistencias**
+
+**Estructura de Campos**
+
+|**Campo**|**Tipo**|**Descripción**|
+|---|---|---|
+|_id|ObjectId|Clave primaria|
+|capacitacionId|ObjectId|Referencia a la capacitación|
+|clienteId|ObjectId|Cliente al que pertenece el participante|
+|participanteNombre|string|Nombre completo del asistente|
+|participanteDocumento|string|Documento de identidad (único por capacitación)|
+|participanteCargo|string \| null|Cargo o rol del asistente|
+|participanteEmail|string \| null|Correo electrónico|
+|registradoPor|ObjectId \| null|Usuario que registró la asistencia|
+|fechaRegistro|date|Momento del registro|
+
+**JSON Schema (Validador de Colección)**
+
+```javascript
+db.createCollection("asistencias", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["capacitacionId", "clienteId", "participanteNombre", "participanteDocumento"],
+      properties: {
+        capacitacionId:        { bsonType: "objectId" },
+        clienteId:             { bsonType: "objectId" },
+        participanteNombre:    { bsonType: "string", maxLength: 100 },
+        participanteDocumento: { bsonType: "string", maxLength: 30 },
+        participanteCargo:     { bsonType: ["string", "null"], maxLength: 80 },
+        participanteEmail: {
+          bsonType: ["string", "null"],
+          pattern: "^.+@.+\\..+$"
+        },
+        registradoPor:         { bsonType: ["objectId", "null"] },
+        fechaRegistro:         { bsonType: "date" }
+      }
+    }
+  }
+})
+
+// Unicidad por capacitación + documento (RF139 — no duplicados)
+db.asistencias.createIndex(
+  { capacitacionId: 1, participanteDocumento: 1 },
+  { unique: true, name: "capacitacionId_1_participanteDocumento_1" }
+)
+
+// Consulta por cliente
+db.asistencias.createIndex({ clienteId: 1 })
+
+// Lista de asistencias por capacitación
+db.asistencias.createIndex({ capacitacionId: 1 })
+```
+
+**Inserción de Ejemplo**
+
+```json
+{
+  "capacitacionId":        { "$oid": "8ab1e5ea504bdc7cdcfd6710" },
+  "clienteId":             { "$oid": "6ab1e5ea504bdc7cdcfd667b" },
+  "participanteNombre":    "Laura Gómez",
+  "participanteDocumento": "1098765432",
+  "participanteCargo":     "Analista de Inventarios",
+  "participanteEmail":     "laura.gomez@elsol.com",
+  "registradoPor":         { "$oid": "5ab1e890352fe6fa12baca81" },
+  "fechaRegistro":         { "$date": "2026-02-10T14:05:00.000Z" }
+}
+```
 
