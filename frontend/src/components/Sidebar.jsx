@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, Ticket, Users, ShieldCheck, BookOpen, BarChart3 } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuthStore } from '../stores/useAuthStore';
+import { LogoMark } from './Logo';
 
 const items = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, perm: null },
@@ -25,8 +26,12 @@ export function Sidebar({ open, onClose }) {
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <div className="flex h-16 items-center border-b border-slate-200 px-4 dark:border-slate-800">
-          <span className="text-lg font-semibold text-brand-600">Sistemas Integrados</span>
+        <div className="flex h-16 items-center gap-2.5 border-b border-slate-200 px-4 dark:border-slate-800">
+          <LogoMark size={22} className="text-brand-600 dark:text-brand-400" />
+          <div className="flex flex-col leading-tight">
+            <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">Sistemas Integrados</span>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">S.A. · Soporte</span>
+          </div>
         </div>
         <nav className="flex flex-col gap-1 p-3">
           {items.filter(i => !i.perm || hasPermission(i.perm)).map(({ to, label, icon: Icon }) => (
