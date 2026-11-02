@@ -129,27 +129,55 @@ export function PagoFormModal({ open, onClose, onSaved, pago }) {
               </div>
 
               <div>
-                <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
-                  Membresía <span className="ml-1 text-zinc-600">(opcional)</span>
-                </label>
-                <select
-                  value={form.membresiaId}
-                  onChange={(e) => change('membresiaId', e.target.value)}
-                  disabled={!form.clienteId}
-                  className="h-9 w-full rounded-md border border-zinc-800 bg-zinc-900/50 px-2 text-[13px] text-zinc-100 focus:border-brand-500 focus:bg-zinc-900 focus:outline-none focus:ring-1 focus:ring-brand-500/50 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="">— Sin asociar —</option>
-                  {membresias.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.plan} · {m.estado} · vence {m.fechaVencimiento}
-                    </option>
-                  ))}
-                </select>
-                {form.membresiaId && (
-                  <p className="mt-1 inline-flex items-center gap-1 text-[11px] text-brand-300">
-                    <ShieldCheck size={11} /> Pago atómico: Pago + Membresía (pagoAlDia=true)
-                  </p>
-                )}
+                {(() => {
+                  const gestionables = membresias.filter((m) => ['activa', 'suspendida', 'vencida'].includes(m.estado));
+                  const requerida = gestionables.length > 0;
+                  const seleccionada = membresias.find((m) => m.id === form.membresiaId);
+                  const precio = seleccionada?.precio;
+                  const valor = Number(form.valor);
+                  const excede = seleccionada && precio != null && valor > Number(precio);
+                  return (
+                    <>
+                      <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+                        Membresía {requerida
+                          ? <span className="ml-1 text-red-400">* (obligatoria — el cliente tiene membresías gestionables)</span>
+                          : <span className="ml-1 text-zinc-600">(opcional — el cliente no tiene membresías)</span>}
+                      </label>
+                      <select
+                        value={form.membresiaId}
+                        onChange={(e) => change('membresiaId', e.target.value)}
+                        disabled={!form.clienteId}
+                        required={requerida}
+                        className="h-9 w-full rounded-md border border-zinc-800 bg-zinc-900/50 px-2 text-[13px] text-zinc-100 focus:border-brand-500 focus:bg-zinc-900 focus:outline-none focus:ring-1 focus:ring-brand-500/50 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <option value="">— {requerida ? 'Elegí una membresía' : 'Sin asociar'} —</option>
+                        {membresias.map((m) => (
+                          <option key={m.id} value={m.id}>
+                            {m.plan} · {m.estado} · ${Number(m.precio || 0).toLocaleString('es-CO')} · vence {m.fechaVencimiento}
+                          </option>
+                        ))}
+                      </select>
+                      {seleccionada && (
+                        <div className="mt-2 space-y-1 rounded-md border border-zinc-900 bg-zinc-900/30 px-3 py-2 text-[11.5px]">
+                          <div className="flex justify-between">
+                            <span className="text-zinc-500">Precio membresía</span>
+                            <span className="font-mono text-zinc-200">${Number(precio || 0).toLocaleString('es-CO')}</span>
+                          </div>
+                          {excede && (
+                            <div className="text-[11px] text-red-300">
+                              Valor del pago (${valor.toLocaleString('es-CO')}) supera el precio. Backend lo rechazará.
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      {form.membresiaId && !excede && (
+                        <p className="mt-1 inline-flex items-center gap-1 text-[11px] text-brand-300">
+                          <ShieldCheck size={11} /> Pago atómico: Pago + Membresía (pagoAlDia=true)
+                        </p>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
             </>
           )}
