@@ -1,7 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Ticket, Users, ShieldCheck, BookOpen, BarChart3,
-  Building2, Wrench, CreditCard, Receipt, LogOut, X,
+  Building2, Wrench, CreditCard, Receipt, GraduationCap, LogOut, X,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuthStore } from '../stores/useAuthStore';
@@ -19,8 +19,9 @@ const sections = [
   {
     label: 'Conocimiento',
     items: [
-      { to: '/base-conocimiento', label: 'Base de conocimiento', icon: BookOpen, perm: 'base_conocimiento.leer' },
-      { to: '/reportes',          label: 'Reportes',             icon: BarChart3, perm: 'reportes.leer' },
+      { to: '/base-conocimiento', label: 'Base de conocimiento', icon: BookOpen,       perm: 'base_conocimiento.leer' },
+      { to: '/capacitaciones',    label: 'Capacitaciones',       icon: GraduationCap,  perm: 'capacitaciones.leer' },
+      { to: '/reportes',          label: 'Reportes',             icon: BarChart3,      perm: 'reportes.leer' },
     ],
   },
   {
