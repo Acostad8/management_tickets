@@ -6,7 +6,7 @@ import { Topbar } from '../components/Topbar';
 export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   return (
-    <div className="flex min-h-screen bg-zinc-950">
+    <div className="flex min-h-screen items-start bg-zinc-950">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar onToggleSidebar={() => setSidebarOpen((v) => !v)} />
