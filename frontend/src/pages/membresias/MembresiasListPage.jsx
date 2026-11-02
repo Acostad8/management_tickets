@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Search, X, Plus, Pencil, Trash2, CreditCard, CheckCircle2, Pause, XCircle, AlertTriangle, Package } from 'lucide-react';
+import { Search, X, Plus, Pencil, Trash2, CreditCard, CheckCircle2, Pause, XCircle, AlertTriangle, Package, Shuffle } from 'lucide-react';
 import { membresiasService } from '../../services/membresias';
 import { clientesService } from '../../services/clientes';
 import { Badge } from '../../components/ui/Badge';
 import { Pagination } from '../../components/ui/Pagination';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { MembresiaFormModal } from './MembresiaFormModal';
+import { ChangeEstadoModal } from './ChangeEstadoModal';
 
 const MODULOS = ['ventas_online', 'inventarios', 'compras', 'produccion', 'ventas_sitio'];
 const ESTADOS = ['activa', 'suspendida', 'vencida', 'cancelada'];
@@ -42,6 +44,8 @@ export function MembresiasListPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [clientes, setClientes] = useState([]);
+  const [changingEstado, setChangingEstado] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
   const hasPermission = useAuthStore((s) => s.hasPermission);
 
   const load = () => {
@@ -68,24 +72,17 @@ export function MembresiasListPage() {
   const openCreate = () => { setEditing(null); setModalOpen(true); };
   const openEdit = (m) => { setEditing(m); setModalOpen(true); };
 
-  const changeEstado = async (m, next) => {
-    setError(''); setBusyId(m.id);
-    try {
-      await membresiasService.cambiarEstado(m.id, next);
-      load();
-    } catch (err) {
-      setError(err.response?.data?.message || 'No se pudo cambiar el estado.');
-    } finally {
-      setBusyId(null);
-    }
-  };
+  const openChangeEstado = (m) => setChangingEstado(m);
+  const requestDelete = (m) => setConfirmDelete(m);
 
-  const remove = async (m) => {
-    if (!window.confirm(`¿Eliminar membresía "${m.plan}" del cliente ${m.clienteRazonSocial || m.clienteId}?`)) return;
+  const doDelete = async () => {
+    const m = confirmDelete;
+    if (!m) return;
     setError(''); setBusyId(m.id);
     try {
       await membresiasService.remove(m.id);
       load();
+      setConfirmDelete(null);
     } catch (err) {
       setError(err.response?.data?.message || 'No se pudo eliminar. Verifica pagos asociados.');
     } finally {
@@ -246,12 +243,18 @@ export function MembresiasListPage() {
                               >
                                 <Pencil size={11} /> Editar
                               </button>
-                              <EstadoDropdown current={m.estado} disabled={busyId === m.id} onChange={(e) => changeEstado(m, e)} />
+                              <button
+                                onClick={() => openChangeEstado(m)}
+                                disabled={busyId === m.id}
+                                className="inline-flex items-center gap-1 rounded-md border border-brand-500/30 bg-brand-500/10 px-2.5 py-1 text-[11.5px] text-brand-200 transition hover:border-brand-500/50 hover:bg-brand-500/15 disabled:opacity-40"
+                              >
+                                <Shuffle size={11} /> Cambiar estado
+                              </button>
                             </>
                           )}
                           {hasPermission('membresias.eliminar') && (
                             <button
-                              onClick={() => remove(m)}
+                              onClick={() => requestDelete(m)}
                               disabled={busyId === m.id}
                               className="inline-flex items-center gap-1 rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[11.5px] text-red-300 transition hover:border-red-500/50 hover:bg-red-500/15 disabled:opacity-40"
                             >
@@ -276,23 +279,32 @@ export function MembresiasListPage() {
         onSaved={load}
         membresia={editing}
       />
-    </div>
-  );
-}
 
-function EstadoDropdown({ current, disabled, onChange }) {
-  return (
-    <select
-      value={current}
-      disabled={disabled}
-      onChange={(e) => {
-        if (e.target.value !== current) onChange(e.target.value);
-      }}
-      className="rounded-md border border-zinc-800 bg-zinc-900/60 px-2 py-1 text-[11.5px] text-zinc-300 focus:border-brand-500 focus:outline-none disabled:opacity-40"
-      title="Cambiar estado"
-    >
-      {ESTADOS.map((o) => <option key={o} value={o}>{o}</option>)}
-    </select>
+      <ChangeEstadoModal
+        open={Boolean(changingEstado)}
+        onClose={() => setChangingEstado(null)}
+        onSaved={load}
+        membresia={changingEstado}
+      />
+
+      <ConfirmDialog
+        open={Boolean(confirmDelete)}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={doDelete}
+        title="Eliminar membresía"
+        message="Esta acción es irreversible. Si la membresía tiene pagos asociados, el backend puede rechazar la operación."
+        details={confirmDelete ? {
+          Plan: confirmDelete.plan,
+          Cliente: confirmDelete.clienteRazonSocial || confirmDelete.clienteId,
+          Estado: confirmDelete.estado,
+          Vencimiento: confirmDelete.fechaVencimiento || '—',
+        } : null}
+        confirmLabel="Eliminar"
+        variant="danger"
+        loading={busyId === confirmDelete?.id}
+        icon={Trash2}
+      />
+    </div>
   );
 }
 
