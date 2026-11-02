@@ -43,7 +43,7 @@ public class DataSeeder {
                         "base_conocimiento.actualizar", "base_conocimiento.eliminar",
                         "membresias.crear", "membresias.leer", "membresias.actualizar",
                         "pagos.crear", "pagos.leer", "pagos.actualizar", "pagos.eliminar",
-                        "capacitaciones.crear", "capacitaciones.leer", "capacitaciones.actualizar", "capacitaciones.eliminar",
+                        "capacitaciones.crear", "capacitaciones.leer", "capacitaciones.actualizar",
                         "asistencias.leer", "asistencias.registrar", "asistencias.eliminar",
                         "reportes.leer"));
 

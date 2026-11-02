@@ -68,13 +68,6 @@ public class CapacitacionController {
         return ResponseEntity.ok(capacitacionService.changeEstado(id, req.estado()));
     }
 
-    @DeleteMapping("/{id}")
-    @PreAuthorize("@perms.has('capacitaciones.eliminar')")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
-        capacitacionService.delete(id);
-        return ResponseEntity.noContent().build();
-    }
-
     @GetMapping("/{id}/asistencias")
     @PreAuthorize("@perms.has('asistencias.leer') or @perms.has('capacitaciones.leer')")
     public ResponseEntity<List<AsistenciaResponse>> listAsistencias(@PathVariable String id) {
