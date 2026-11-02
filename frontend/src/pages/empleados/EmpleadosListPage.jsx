@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Search, X, Plus, Pencil, Trash2, Power, Users, CheckCircle2, XCircle, Wrench } from 'lucide-react';
+import { Search, X, Plus, Pencil, Power, Users, CheckCircle2, XCircle, Wrench } from 'lucide-react';
 import { empleadosService } from '../../services/empleados';
 import { Badge } from '../../components/ui/Badge';
 import { Pagination } from '../../components/ui/Pagination';
@@ -31,7 +31,6 @@ export function EmpleadosListPage() {
   const [busyId, setBusyId] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [confirmDelete, setConfirmDelete] = useState(null);
   const [confirmToggle, setConfirmToggle] = useState(null);
   const hasPermission = useAuthStore((s) => s.hasPermission);
 
@@ -54,7 +53,6 @@ export function EmpleadosListPage() {
   const openEdit = (e) => { setEditing(e); setModalOpen(true); };
 
   const requestToggle = (e) => setConfirmToggle(e);
-  const requestDelete = (e) => setConfirmDelete(e);
 
   const doToggleEstado = async () => {
     const e = confirmToggle;
@@ -67,21 +65,6 @@ export function EmpleadosListPage() {
       setConfirmToggle(null);
     } catch (err) {
       setError(err.response?.data?.message || 'No se pudo cambiar el estado.');
-    } finally {
-      setBusyId(null);
-    }
-  };
-
-  const doDelete = async () => {
-    const e = confirmDelete;
-    if (!e) return;
-    setError(''); setBusyId(e.id);
-    try {
-      await empleadosService.remove(e.id);
-      load();
-      setConfirmDelete(null);
-    } catch (err) {
-      setError(err.response?.data?.message || 'No se pudo eliminar. Verifica tickets asignados.');
     } finally {
       setBusyId(null);
     }
@@ -233,15 +216,6 @@ export function EmpleadosListPage() {
                             </button>
                           </>
                         )}
-                        {hasPermission('empleados.eliminar') && (
-                          <button
-                            onClick={() => requestDelete(e)}
-                            disabled={busyId === e.id}
-                            className="inline-flex items-center gap-1 rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[11.5px] text-red-300 transition hover:border-red-500/50 hover:bg-red-500/15 disabled:opacity-40"
-                          >
-                            <Trash2 size={11} /> Eliminar
-                          </button>
-                        )}
                       </div>
                     </td>
                   </tr>
@@ -258,24 +232,6 @@ export function EmpleadosListPage() {
         onClose={() => setModalOpen(false)}
         onSaved={load}
         empleado={editing}
-      />
-
-      <ConfirmDialog
-        open={Boolean(confirmDelete)}
-        onClose={() => setConfirmDelete(null)}
-        onConfirm={doDelete}
-        title="Eliminar empleado"
-        message="Esta acción es irreversible. Si el empleado tiene tickets asignados, el backend rechazará la operación."
-        details={confirmDelete ? {
-          Código: confirmDelete.codigoEmpleado,
-          Nombre: `${confirmDelete.nombre || ''} ${confirmDelete.apellido || ''}`.trim(),
-          Área: confirmDelete.area,
-          Estado: confirmDelete.estado,
-        } : null}
-        confirmLabel="Eliminar"
-        variant="danger"
-        loading={busyId === confirmDelete?.id}
-        icon={Trash2}
       />
 
       <ConfirmDialog

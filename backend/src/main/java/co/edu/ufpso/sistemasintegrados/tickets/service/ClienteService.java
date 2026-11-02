@@ -86,11 +86,6 @@ public class ClienteService {
         return ClienteResponse.from(clienteRepository.save(c));
     }
 
-    public void delete(String id) {
-        Cliente c = findOrThrow(id);
-        clienteRepository.delete(c);
-    }
-
     public ClienteResponse changeEstado(String id, EstadoCliente nuevo) {
         Cliente c = findOrThrow(id);
         c.setEstado(nuevo);

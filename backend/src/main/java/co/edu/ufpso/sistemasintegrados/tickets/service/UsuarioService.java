@@ -91,11 +91,6 @@ public class UsuarioService {
         return UsuarioResponse.from(usuarioRepository.save(u));
     }
 
-    public void delete(String id) {
-        Usuario u = findOrThrow(id);
-        usuarioRepository.delete(u);
-    }
-
     public UsuarioResponse assignRoles(String id, AssignRolesRequest req) {
         Usuario u = findOrThrow(id);
         validateRolesExist(req.roles());

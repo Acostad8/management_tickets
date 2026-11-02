@@ -119,11 +119,6 @@ public class EmpleadoService {
         return EmpleadoResponse.from(empleadoRepository.save(e));
     }
 
-    public void delete(String id) {
-        Empleado e = findOrThrow(id);
-        empleadoRepository.delete(e);
-    }
-
     public EmpleadoResponse changeEstado(String id, EstadoEmpleado nuevo) {
         Empleado e = findOrThrow(id);
         e.setEstado(nuevo);
