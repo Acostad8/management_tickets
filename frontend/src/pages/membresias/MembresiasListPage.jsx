@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Search, X, Plus, Pencil, Trash2, CreditCard, CheckCircle2, Pause, XCircle, AlertTriangle, Package, Shuffle } from 'lucide-react';
+import { Search, X, Plus, Pencil, CreditCard, CheckCircle2, Pause, AlertTriangle, Shuffle } from 'lucide-react';
 import { membresiasService } from '../../services/membresias';
 import { clientesService } from '../../services/clientes';
 import { Badge } from '../../components/ui/Badge';
 import { Pagination } from '../../components/ui/Pagination';
-import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { MembresiaFormModal } from './MembresiaFormModal';
 import { ChangeEstadoModal } from './ChangeEstadoModal';
@@ -45,7 +44,6 @@ export function MembresiasListPage() {
   const [editing, setEditing] = useState(null);
   const [clientes, setClientes] = useState([]);
   const [changingEstado, setChangingEstado] = useState(null);
-  const [confirmDelete, setConfirmDelete] = useState(null);
   const hasPermission = useAuthStore((s) => s.hasPermission);
 
   const load = () => {
@@ -73,22 +71,6 @@ export function MembresiasListPage() {
   const openEdit = (m) => { setEditing(m); setModalOpen(true); };
 
   const openChangeEstado = (m) => setChangingEstado(m);
-  const requestDelete = (m) => setConfirmDelete(m);
-
-  const doDelete = async () => {
-    const m = confirmDelete;
-    if (!m) return;
-    setError(''); setBusyId(m.id);
-    try {
-      await membresiasService.remove(m.id);
-      load();
-      setConfirmDelete(null);
-    } catch (err) {
-      setError(err.response?.data?.message || 'No se pudo eliminar. Verifica pagos asociados.');
-    } finally {
-      setBusyId(null);
-    }
-  };
 
   const stats = useMemo(() => {
     const rows = data?.content || [];
@@ -252,15 +234,6 @@ export function MembresiasListPage() {
                               </button>
                             </>
                           )}
-                          {hasPermission('membresias.eliminar') && (
-                            <button
-                              onClick={() => requestDelete(m)}
-                              disabled={busyId === m.id}
-                              className="inline-flex items-center gap-1 rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[11.5px] text-red-300 transition hover:border-red-500/50 hover:bg-red-500/15 disabled:opacity-40"
-                            >
-                              <Trash2 size={11} /> Eliminar
-                            </button>
-                          )}
                         </div>
                       </td>
                     </tr>
@@ -285,28 +258,6 @@ export function MembresiasListPage() {
         onClose={() => setChangingEstado(null)}
         onSaved={load}
         membresia={changingEstado}
-      />
-
-      <ConfirmDialog
-        open={Boolean(confirmDelete)}
-        onClose={() => setConfirmDelete(null)}
-        onConfirm={doDelete}
-        title="Eliminar membresía"
-        message={
-          confirmDelete?.estado === 'activa'
-            ? 'Una membresía activa no puede eliminarse. Cambiá primero su estado a cancelada.'
-            : 'Solo se pueden eliminar membresías sin pagos asociados. Si ya hay pagos registrados, cancelá la membresía en lugar de eliminarla para preservar la trazabilidad contable.'
-        }
-        details={confirmDelete ? {
-          Plan: confirmDelete.plan,
-          Cliente: confirmDelete.clienteRazonSocial || confirmDelete.clienteId,
-          Estado: confirmDelete.estado,
-          Vencimiento: confirmDelete.fechaVencimiento || '—',
-        } : null}
-        confirmLabel="Eliminar"
-        variant="danger"
-        loading={busyId === confirmDelete?.id}
-        icon={Trash2}
       />
     </div>
   );

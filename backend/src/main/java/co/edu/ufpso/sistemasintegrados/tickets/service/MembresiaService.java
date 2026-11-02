@@ -11,7 +11,6 @@ import co.edu.ufpso.sistemasintegrados.tickets.exception.BusinessException;
 import co.edu.ufpso.sistemasintegrados.tickets.exception.NotFoundException;
 import co.edu.ufpso.sistemasintegrados.tickets.repository.ClienteRepository;
 import co.edu.ufpso.sistemasintegrados.tickets.repository.MembresiaRepository;
-import co.edu.ufpso.sistemasintegrados.tickets.repository.PagoRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -31,16 +30,13 @@ public class MembresiaService {
 
     private final MembresiaRepository membresiaRepository;
     private final ClienteRepository clienteRepository;
-    private final PagoRepository pagoRepository;
     private final MongoTemplate mongoTemplate;
 
     public MembresiaService(MembresiaRepository membresiaRepository,
                             ClienteRepository clienteRepository,
-                            PagoRepository pagoRepository,
                             MongoTemplate mongoTemplate) {
         this.membresiaRepository = membresiaRepository;
         this.clienteRepository = clienteRepository;
-        this.pagoRepository = pagoRepository;
         this.mongoTemplate = mongoTemplate;
     }
 
@@ -118,19 +114,6 @@ public class MembresiaService {
         Membresia saved = membresiaRepository.save(m);
         String razon = clienteRepository.findById(saved.getClienteId()).map(Cliente::getRazonSocial).orElse(null);
         return MembresiaResponse.from(saved, razon);
-    }
-
-    public void delete(String id) {
-        Membresia m = findOrThrow(id);
-        long pagos = pagoRepository.findByMembresiaIdOrderByFechaPagoDesc(id).size();
-        if (pagos > 0) {
-            throw new BusinessException("No se puede eliminar: la membresía tiene " + pagos
-                    + " pago(s) asociados. Cancelá la membresía en lugar de eliminarla para preservar la trazabilidad.");
-        }
-        if (m.getEstado() == EstadoMembresia.activa) {
-            throw new BusinessException("No se puede eliminar una membresía activa. Cambialá a cancelada primero.");
-        }
-        membresiaRepository.delete(m);
     }
 
     public MembresiaResponse changeEstado(String id, EstadoMembresia nuevo) {
