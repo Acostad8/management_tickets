@@ -14,6 +14,7 @@ import { ClientesListPage } from '../pages/clientes/ClientesListPage';
 import { EmpleadosListPage } from '../pages/empleados/EmpleadosListPage';
 import { MembresiasListPage } from '../pages/membresias/MembresiasListPage';
 import { PagosListPage } from '../pages/pagos/PagosListPage';
+import { CapacitacionesListPage } from '../pages/capacitaciones/CapacitacionesListPage';
 import { KbListPage } from '../pages/kb/KbListPage';
 import { KbDetailPage } from '../pages/kb/KbDetailPage';
 import { KbCreatePage } from '../pages/kb/KbCreatePage';
@@ -37,6 +38,7 @@ export const router = createBrowserRouter([
       { path: '/empleados',        element: <EmpleadosListPage /> },
       { path: '/membresias',       element: <MembresiasListPage /> },
       { path: '/pagos',            element: <PagosListPage /> },
+      { path: '/capacitaciones',   element: <CapacitacionesListPage /> },
 
       { path: '/base-conocimiento',          element: <KbListPage /> },
       { path: '/base-conocimiento/nuevo',    element: <KbCreatePage /> },
