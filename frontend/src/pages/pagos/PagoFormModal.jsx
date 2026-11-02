@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { X, Save, Loader2, ShieldCheck } from 'lucide-react';
+import { X, Save, Loader2, ShieldCheck, AlertCircle } from 'lucide-react';
 import { pagosService } from '../../services/pagos';
 import { clientesService } from '../../services/clientes';
 import { membresiasService } from '../../services/membresias';
@@ -140,8 +140,8 @@ export function PagoFormModal({ open, onClose, onSaved, pago }) {
                     <>
                       <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
                         Membresía {requerida
-                          ? <span className="ml-1 text-red-400">* (obligatoria — el cliente tiene membresías gestionables)</span>
-                          : <span className="ml-1 text-zinc-600">(opcional — el cliente no tiene membresías)</span>}
+                          ? <span className="ml-1 text-red-400">* (el cliente tiene membresías activas, elegí a cuál se aplica el pago)</span>
+                          : <span className="ml-1 text-zinc-600">(este cliente no tiene membresías activas)</span>}
                       </label>
                       <select
                         value={form.membresiaId}
@@ -158,21 +158,34 @@ export function PagoFormModal({ open, onClose, onSaved, pago }) {
                         ))}
                       </select>
                       {seleccionada && (
-                        <div className="mt-2 space-y-1 rounded-md border border-zinc-900 bg-zinc-900/30 px-3 py-2 text-[11.5px]">
-                          <div className="flex justify-between">
-                            <span className="text-zinc-500">Precio membresía</span>
-                            <span className="font-mono text-zinc-200">${Number(precio || 0).toLocaleString('es-CO')}</span>
+                        <div className={`mt-2 overflow-hidden rounded-md border ${excede ? 'border-red-500/30' : 'border-zinc-900'}`}>
+                          <div className="grid grid-cols-3 divide-x divide-zinc-900 bg-zinc-900/30">
+                            <SummaryCell label="Precio del plan" value={`$${Number(precio || 0).toLocaleString('es-CO')}`} tone="muted" />
+                            <SummaryCell
+                              label="Valor a registrar"
+                              value={valor > 0 ? `$${valor.toLocaleString('es-CO')}` : '—'}
+                              tone={excede ? 'danger' : valor > 0 ? 'brand' : 'muted'}
+                            />
+                            <SummaryCell
+                              label={excede ? 'Excede en' : 'Diferencia'}
+                              value={valor > 0 ? `$${Math.abs(Number(precio || 0) - valor).toLocaleString('es-CO')}` : '—'}
+                              tone={excede ? 'danger' : 'muted'}
+                            />
                           </div>
                           {excede && (
-                            <div className="text-[11px] text-red-300">
-                              Valor del pago (${valor.toLocaleString('es-CO')}) supera el precio. Backend lo rechazará.
+                            <div className="flex items-start gap-2 border-t border-red-500/30 bg-red-500/5 px-3 py-2 text-[11.5px] text-red-200">
+                              <AlertCircle size={12} className="mt-0.5 flex-shrink-0 text-red-400" />
+                              <span>
+                                No podés registrar un pago mayor al precio del plan. Ajustá el valor para que no supere
+                                <span className="font-mono"> ${Number(precio || 0).toLocaleString('es-CO')}</span>.
+                              </span>
                             </div>
                           )}
                         </div>
                       )}
-                      {form.membresiaId && !excede && (
-                        <p className="mt-1 inline-flex items-center gap-1 text-[11px] text-brand-300">
-                          <ShieldCheck size={11} /> Pago atómico: Pago + Membresía (pagoAlDia=true)
+                      {form.membresiaId && !excede && valor > 0 && (
+                        <p className="mt-2 inline-flex items-center gap-1 text-[11px] text-brand-300">
+                          <ShieldCheck size={11} /> Al confirmar, se actualiza la membresía como pagada en la misma operación.
                         </p>
                       )}
                     </>
@@ -270,6 +283,20 @@ function ModalSelect({ label, value, options, onChange, required, error }) {
         {options.map((o) => <option key={o} value={o}>{o}</option>)}
       </select>
       {error && <p className="mt-1 text-[11px] text-red-300">{error}</p>}
+    </div>
+  );
+}
+
+function SummaryCell({ label, value, tone = 'muted' }) {
+  const toneClass = {
+    muted:  'text-zinc-200',
+    brand:  'text-brand-300',
+    danger: 'text-red-300',
+  }[tone] || 'text-zinc-200';
+  return (
+    <div className="bg-zinc-950 p-2.5">
+      <div className="text-[9.5px] font-semibold uppercase tracking-[0.14em] text-zinc-500">{label}</div>
+      <div className={`mt-1 font-mono text-[12.5px] tabular-nums ${toneClass}`}>{value}</div>
     </div>
   );
 }
