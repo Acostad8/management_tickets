@@ -50,16 +50,16 @@ export const DETALLES_SCHEMA = {
 };
 
 export const ESTADO_COLORS = {
-  nuevo:      'bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300',
-  en_proceso: 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300',
-  en_espera:  'bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300',
-  resuelto:   'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300',
-  cerrado:    'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
+  nuevo:      'bg-sky-500/10 text-sky-300 border border-sky-500/20',
+  en_proceso: 'bg-amber-500/10 text-amber-300 border border-amber-500/20',
+  en_espera:  'bg-purple-500/10 text-purple-300 border border-purple-500/20',
+  resuelto:   'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20',
+  cerrado:    'bg-zinc-800 text-zinc-400 border border-zinc-700',
 };
 
 export const PRIORIDAD_COLORS = {
-  baja:    'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
-  media:   'bg-sky-100 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300',
-  alta:    'bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300',
-  critica: 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300',
+  baja:    'bg-zinc-800 text-zinc-400 border border-zinc-700',
+  media:   'bg-sky-500/10 text-sky-300 border border-sky-500/20',
+  alta:    'bg-orange-500/10 text-orange-300 border border-orange-500/20',
+  critica: 'bg-red-500/10 text-red-300 border border-red-500/20',
 };

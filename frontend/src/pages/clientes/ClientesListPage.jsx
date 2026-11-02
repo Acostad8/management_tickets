@@ -3,6 +3,7 @@ import { Search, X, Plus, Pencil, Trash2, Power, Building2, CheckCircle2, XCircl
 import { clientesService } from '../../services/clientes';
 import { Badge } from '../../components/ui/Badge';
 import { Pagination } from '../../components/ui/Pagination';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { ClienteFormModal } from './ClienteFormModal';
 
@@ -22,6 +23,8 @@ export function ClientesListPage() {
   const [busyId, setBusyId] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [confirmToggle, setConfirmToggle] = useState(null);
   const hasPermission = useAuthStore((s) => s.hasPermission);
 
   const load = () => {
@@ -42,12 +45,18 @@ export function ClientesListPage() {
   const openCreate = () => { setEditing(null); setModalOpen(true); };
   const openEdit = (c) => { setEditing(c); setModalOpen(true); };
 
-  const toggleEstado = async (c) => {
+  const requestToggle = (c) => setConfirmToggle(c);
+  const requestDelete = (c) => setConfirmDelete(c);
+
+  const doToggleEstado = async () => {
+    const c = confirmToggle;
+    if (!c) return;
     setError(''); setBusyId(c.id);
     const next = c.estado === 'activo' ? 'inactivo' : 'activo';
     try {
       await clientesService.cambiarEstado(c.id, next);
       load();
+      setConfirmToggle(null);
     } catch (err) {
       setError(err.response?.data?.message || 'No se pudo cambiar el estado.');
     } finally {
@@ -55,12 +64,14 @@ export function ClientesListPage() {
     }
   };
 
-  const remove = async (c) => {
-    if (!window.confirm(`¿Eliminar al cliente "${c.razonSocial}"? Esta acción no se puede deshacer.`)) return;
+  const doDelete = async () => {
+    const c = confirmDelete;
+    if (!c) return;
     setError(''); setBusyId(c.id);
     try {
       await clientesService.remove(c.id);
       load();
+      setConfirmDelete(null);
     } catch (err) {
       setError(err.response?.data?.message || 'No se pudo eliminar. Verifica relaciones con tickets, usuarios o membresías.');
     } finally {
@@ -199,7 +210,7 @@ export function ClientesListPage() {
                               <Pencil size={11} /> Editar
                             </button>
                             <button
-                              onClick={() => toggleEstado(c)}
+                              onClick={() => requestToggle(c)}
                               disabled={busyId === c.id}
                               className="inline-flex items-center gap-1 rounded-md border border-zinc-800 bg-zinc-900/60 px-2.5 py-1 text-[11.5px] text-zinc-300 transition hover:border-zinc-700 hover:bg-zinc-900 disabled:opacity-40"
                             >
@@ -209,7 +220,7 @@ export function ClientesListPage() {
                         )}
                         {hasPermission('clientes.eliminar') && (
                           <button
-                            onClick={() => remove(c)}
+                            onClick={() => requestDelete(c)}
                             disabled={busyId === c.id}
                             className="inline-flex items-center gap-1 rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-[11.5px] text-red-300 transition hover:border-red-500/50 hover:bg-red-500/15 disabled:opacity-40"
                           >
@@ -232,6 +243,45 @@ export function ClientesListPage() {
         onClose={() => setModalOpen(false)}
         onSaved={load}
         cliente={editing}
+      />
+
+      <ConfirmDialog
+        open={Boolean(confirmDelete)}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={doDelete}
+        title="Eliminar cliente"
+        message="Esta acción es irreversible. El cliente dejará de existir en el sistema."
+        details={confirmDelete ? {
+          'Razón social': confirmDelete.razonSocial,
+          NIT: confirmDelete.nit,
+          Estado: confirmDelete.estado,
+        } : null}
+        confirmLabel="Eliminar"
+        variant="danger"
+        loading={busyId === confirmDelete?.id}
+        icon={Trash2}
+      />
+
+      <ConfirmDialog
+        open={Boolean(confirmToggle)}
+        onClose={() => setConfirmToggle(null)}
+        onConfirm={doToggleEstado}
+        title={confirmToggle?.estado === 'activo' ? 'Desactivar cliente' : 'Activar cliente'}
+        message={
+          confirmToggle?.estado === 'activo'
+            ? 'El cliente quedará marcado como inactivo. No podrá crear tickets ni asociarse a nuevas membresías mientras esté en este estado.'
+            : 'El cliente volverá al estado activo y podrá volver a operar en el sistema.'
+        }
+        details={confirmToggle ? {
+          'Razón social': confirmToggle.razonSocial,
+          NIT: confirmToggle.nit,
+          'Estado actual': confirmToggle.estado,
+          'Nuevo estado': confirmToggle.estado === 'activo' ? 'inactivo' : 'activo',
+        } : null}
+        confirmLabel={confirmToggle?.estado === 'activo' ? 'Desactivar' : 'Activar'}
+        variant={confirmToggle?.estado === 'activo' ? 'warning' : 'info'}
+        loading={busyId === confirmToggle?.id}
+        icon={Power}
       />
     </div>
   );
