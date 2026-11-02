@@ -6,7 +6,7 @@ spring:
   data:
     mongodb:
       uri: ${MONGO_URI:mongodb://localhost:27017/management_tickets?replicaSet=rs0}
-      auto-index-creation: true
+      auto-index-creation: false
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
