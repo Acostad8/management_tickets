@@ -1,4 +1,8 @@
+import { useState } from 'react';
+
 export function TicketsPorDiaChart({ data }) {
+  const [hover, setHover] = useState(null);
+
   if (!data || data.length === 0) {
     return (
       <div className="border border-zinc-900 bg-zinc-950 p-5">
@@ -13,6 +17,7 @@ export function TicketsPorDiaChart({ data }) {
   const max = Math.max(1, ...data.map((d) => d.count));
   const total = data.reduce((s, d) => s + d.count, 0);
   const avg = (total / data.length).toFixed(1);
+  const peak = data.reduce((m, d) => (d.count > m.count ? d : m), data[0]);
 
   return (
     <div className="border border-zinc-900 bg-zinc-950 p-5">
@@ -22,7 +27,7 @@ export function TicketsPorDiaChart({ data }) {
             Actividad reciente
           </h3>
           <p className="mt-1 text-[12px] text-zinc-500">
-            {data.length} días con actividad
+            {data.length} días · total {total} · pico {peak.count} ({peak.fecha})
           </p>
         </div>
         <div className="text-right">
@@ -33,19 +38,34 @@ export function TicketsPorDiaChart({ data }) {
         </div>
       </div>
 
-      <div className="flex h-36 items-end gap-1.5">
-        {data.map((d) => {
-          const h = Math.max(4, (d.count / max) * 100);
-          return (
-            <div key={d.fecha} className="group relative flex h-full flex-1 flex-col items-center justify-end">
+      <div className="relative">
+        <div className="flex h-36 items-end gap-1.5" onMouseLeave={() => setHover(null)}>
+          {data.map((d, idx) => {
+            const h = Math.max(4, (d.count / max) * 100);
+            const active = hover?.fecha === d.fecha;
+            return (
               <div
-                className="w-full rounded-sm bg-brand-500/60 transition group-hover:bg-brand-400"
-                style={{ height: `${h}%` }}
-                title={`${d.fecha} · ${d.count} ticket(s)`}
-              />
-            </div>
-          );
-        })}
+                key={d.fecha}
+                className="group relative flex h-full flex-1 flex-col items-center justify-end"
+                onMouseEnter={() => setHover({ ...d, idx })}
+              >
+                <div
+                  className={`w-full rounded-sm transition ${active ? 'bg-brand-300' : 'bg-brand-500/60 group-hover:bg-brand-400'}`}
+                  style={{ height: `${h}%` }}
+                />
+              </div>
+            );
+          })}
+        </div>
+        {hover && (
+          <div
+            className="pointer-events-none absolute -top-2 z-10 -translate-x-1/2 -translate-y-full rounded-md border border-zinc-800 bg-zinc-950 px-2.5 py-1.5 text-[11px] shadow-lg"
+            style={{ left: `${((hover.idx + 0.5) / data.length) * 100}%` }}
+          >
+            <div className="font-mono text-zinc-500">{hover.fecha}</div>
+            <div className="font-mono tabular-nums text-zinc-100">{hover.count} ticket(s)</div>
+          </div>
+        )}
       </div>
 
       <div className="mt-3 flex justify-between font-mono text-[10px] tabular-nums text-zinc-600">
