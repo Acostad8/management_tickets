@@ -34,6 +34,7 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
+            <!-- dependencia de mongodb -->
             <artifactId>spring-boot-starter-data-mongodb</artifactId>
         </dependency>
         <dependency>
