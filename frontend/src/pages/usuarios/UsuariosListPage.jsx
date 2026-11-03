@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Search, Unlock, X, UserPlus, UserCheck, UserX, ShieldAlert, Users } from 'lucide-react';
+import { Search, Unlock, X, UserPlus, UserCheck, UserX, ShieldAlert, Users, Power, Pencil } from 'lucide-react';
 import { usuariosService } from '../../services/usuarios';
 import { rolesService } from '../../services/roles';
 import { Badge } from '../../components/ui/Badge';
 import { Pagination } from '../../components/ui/Pagination';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useAuthStore } from '../../stores/useAuthStore';
+import { UsuarioFormModal } from './UsuarioFormModal';
 
 const ESTADOS = ['activo', 'inactivo', 'bloqueado'];
 
@@ -22,7 +24,14 @@ export function UsuariosListPage() {
   const [roles, setRoles] = useState([]);
   const [error, setError] = useState('');
   const [busyId, setBusyId] = useState(null);
+  const [confirmToggle, setConfirmToggle] = useState(null);
+  const [confirmUnlock, setConfirmUnlock] = useState(null);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editing, setEditing] = useState(null);
   const hasPermission = useAuthStore((s) => s.hasPermission);
+
+  const openCreate = () => { setEditing(null); setFormOpen(true); };
+  const openEdit = (u) => { setEditing(u); setFormOpen(true); };
 
   const load = () => {
     setLoading(true);
@@ -43,11 +52,17 @@ export function UsuariosListPage() {
   const activeFilters = Object.entries(filters).filter(([, v]) => v);
   const clearFilters = () => { setPage(0); setFilters({ email: '', estado: '', rol: '' }); };
 
-  const unlock = async (id) => {
-    setError(''); setBusyId(id);
+  const requestUnlock = (u) => setConfirmUnlock(u);
+  const requestToggle = (u) => setConfirmToggle(u);
+
+  const doUnlock = async () => {
+    const u = confirmUnlock;
+    if (!u) return;
+    setError(''); setBusyId(u.id);
     try {
-      await usuariosService.unlock(id);
+      await usuariosService.unlock(u.id);
       load();
+      setConfirmUnlock(null);
     } catch (err) {
       setError(err.response?.data?.message || 'No se pudo desbloquear el usuario.');
     } finally {
@@ -55,12 +70,15 @@ export function UsuariosListPage() {
     }
   };
 
-  const toggleEstado = async (u) => {
+  const doToggleEstado = async () => {
+    const u = confirmToggle;
+    if (!u) return;
     setError(''); setBusyId(u.id);
     const next = u.estado === 'activo' ? 'inactivo' : 'activo';
     try {
       await usuariosService.cambiarEstado(u.id, next);
       load();
+      setConfirmToggle(null);
     } catch (err) {
       setError(err.response?.data?.message || 'No se pudo cambiar el estado.');
     } finally {
@@ -90,7 +108,11 @@ export function UsuariosListPage() {
           </p>
         </div>
         {hasPermission('usuarios.crear') && (
-          <button className="btn-primary self-start sm:self-end" disabled title="Alta en progreso">
+          <button
+            type="button"
+            onClick={openCreate}
+            className="btn-primary self-start sm:self-end"
+          >
             <UserPlus size={14} /> Nuevo usuario
           </button>
         )}
@@ -207,18 +229,26 @@ export function UsuariosListPage() {
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-right align-middle">
                       <div className="inline-flex items-center justify-end gap-1.5">
-                        {u.estado === 'bloqueado' && hasPermission('usuarios.desbloquear') && (
+                        {hasPermission('usuarios.actualizar') && (
                           <button
-                            onClick={() => unlock(u.id)}
+                            onClick={() => openEdit(u)}
+                            className="inline-flex items-center gap-1 rounded-md border border-zinc-800 bg-zinc-900/60 px-2.5 py-1 text-[11.5px] text-zinc-300 transition hover:border-zinc-700 hover:bg-zinc-900"
+                          >
+                            <Pencil size={11} /> Editar
+                          </button>
+                        )}
+                        {u.estado === 'bloqueado' && hasPermission('usuarios.actualizar') && (
+                          <button
+                            onClick={() => requestUnlock(u)}
                             disabled={busyId === u.id}
                             className="inline-flex items-center gap-1 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11.5px] text-emerald-300 transition hover:border-emerald-500/50 hover:bg-emerald-500/15 disabled:opacity-40"
                           >
                             <Unlock size={11} /> Desbloquear
                           </button>
                         )}
-                        {u.estado !== 'bloqueado' && hasPermission('usuarios.editar') && (
+                        {u.estado !== 'bloqueado' && hasPermission('usuarios.actualizar') && (
                           <button
-                            onClick={() => toggleEstado(u)}
+                            onClick={() => requestToggle(u)}
                             disabled={busyId === u.id}
                             className="inline-flex items-center gap-1 rounded-md border border-zinc-800 bg-zinc-900/60 px-2.5 py-1 text-[11.5px] text-zinc-300 transition hover:border-zinc-700 hover:bg-zinc-900 disabled:opacity-40"
                           >
@@ -235,6 +265,52 @@ export function UsuariosListPage() {
           <Pagination page={data.page} totalPages={data.totalPages} onChange={setPage} />
         </>
       )}
+
+      <UsuarioFormModal
+        open={formOpen}
+        onClose={() => setFormOpen(false)}
+        onSaved={load}
+        usuario={editing}
+      />
+
+      <ConfirmDialog
+        open={Boolean(confirmToggle)}
+        onClose={() => setConfirmToggle(null)}
+        onConfirm={doToggleEstado}
+        title={confirmToggle?.estado === 'activo' ? 'Desactivar usuario' : 'Activar usuario'}
+        message={
+          confirmToggle?.estado === 'activo'
+            ? 'El usuario quedará inactivo y no podrá iniciar sesión mientras esté en este estado.'
+            : 'El usuario volverá al estado activo y podrá iniciar sesión nuevamente. Se reiniciarán los intentos fallidos.'
+        }
+        details={confirmToggle ? {
+          Email: confirmToggle.email,
+          Nombre: `${confirmToggle.nombre || ''} ${confirmToggle.apellido || ''}`.trim(),
+          'Estado actual': confirmToggle.estado,
+          'Nuevo estado': confirmToggle.estado === 'activo' ? 'inactivo' : 'activo',
+        } : null}
+        confirmLabel={confirmToggle?.estado === 'activo' ? 'Desactivar' : 'Activar'}
+        variant={confirmToggle?.estado === 'activo' ? 'warning' : 'info'}
+        loading={busyId === confirmToggle?.id}
+        icon={Power}
+      />
+
+      <ConfirmDialog
+        open={Boolean(confirmUnlock)}
+        onClose={() => setConfirmUnlock(null)}
+        onConfirm={doUnlock}
+        title="Desbloquear usuario"
+        message="El contador de intentos fallidos se reiniciará y el usuario podrá volver a iniciar sesión."
+        details={confirmUnlock ? {
+          Email: confirmUnlock.email,
+          Nombre: `${confirmUnlock.nombre || ''} ${confirmUnlock.apellido || ''}`.trim(),
+          'Intentos fallidos': `${confirmUnlock.intentosFallidos || 0} / 5`,
+        } : null}
+        confirmLabel="Desbloquear"
+        variant="info"
+        loading={busyId === confirmUnlock?.id}
+        icon={Unlock}
+      />
     </div>
   );
 }

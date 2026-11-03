@@ -33,15 +33,18 @@ public class DataSeeder {
         createRolIfMissing(repo, "ADMIN", "Administrador",
                 "Acceso total al sistema",
                 List.of(
-                        "usuarios.crear", "usuarios.leer", "usuarios.actualizar", "usuarios.eliminar",
+                        "usuarios.crear", "usuarios.leer", "usuarios.actualizar",
                         "roles.crear", "roles.leer", "roles.actualizar", "roles.eliminar",
-                        "clientes.crear", "clientes.leer", "clientes.actualizar", "clientes.eliminar",
-                        "empleados.crear", "empleados.leer", "empleados.actualizar", "empleados.eliminar",
+                        "clientes.crear", "clientes.leer", "clientes.actualizar",
+                        "empleados.crear", "empleados.leer", "empleados.actualizar",
                         "tickets.crear", "tickets.leer", "tickets.actualizar", "tickets.eliminar",
                         "tickets.asignar", "tickets.actualizar_estado", "tickets.responder",
                         "base_conocimiento.crear", "base_conocimiento.leer",
                         "base_conocimiento.actualizar", "base_conocimiento.eliminar",
-                        "membresias.gestionar", "pagos.gestionar", "capacitaciones.gestionar",
+                        "membresias.crear", "membresias.leer", "membresias.actualizar",
+                        "pagos.crear", "pagos.leer", "pagos.actualizar", "pagos.eliminar",
+                        "capacitaciones.crear", "capacitaciones.leer", "capacitaciones.actualizar",
+                        "asistencias.leer", "asistencias.registrar", "asistencias.eliminar",
                         "reportes.leer"));
 
         createRolIfMissing(repo, "SOPORTE", "Personal de Soporte",
@@ -57,13 +60,14 @@ public class DataSeeder {
                 List.of(
                         "tickets.crear", "tickets.leer_propios", "tickets.responder_propios",
                         "base_conocimiento.leer",
-                        "capacitaciones.leer", "capacitaciones.inscribirse"));
+                        "capacitaciones.leer", "asistencias.registrar"));
 
         createRolIfMissing(repo, "VENTAS", "Equipo Comercial",
                 "Gestión de clientes y membresías",
                 List.of(
                         "clientes.crear", "clientes.leer", "clientes.actualizar",
-                        "membresias.gestionar", "pagos.leer",
+                        "membresias.crear", "membresias.leer", "membresias.actualizar",
+                        "pagos.crear", "pagos.leer", "pagos.actualizar",
                         "reportes.leer"));
     }
 

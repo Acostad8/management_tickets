@@ -50,13 +50,6 @@ public class UsuarioController {
         return ResponseEntity.ok(service.update(id, req));
     }
 
-    @DeleteMapping("/{id}")
-    @PreAuthorize("@perms.has('usuarios.eliminar')")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
-        service.delete(id);
-        return ResponseEntity.noContent().build();
-    }
-
     @PatchMapping("/{id}/roles")
     @PreAuthorize("@perms.has('usuarios.actualizar')")
     public ResponseEntity<UsuarioResponse> assignRoles(@PathVariable String id,

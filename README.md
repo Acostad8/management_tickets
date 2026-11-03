@@ -31,8 +31,7 @@ management_tickets/
 | `hotfix/<nombre>` | Fix urgente en producción. |
 
 Prefijos autor:
-- **JDAS** — Juan David Acosta Sánchez (auth, usuarios/roles, tickets, base conocimiento)
-- A definir — compañero (clientes, membresías/pagos, capacitaciones)
+- **JDAS** — Juan David Acosta Sánchez (todas las épicas 1–7)
 
 ## Fases de desarrollo
 
@@ -44,10 +43,20 @@ Prefijos autor:
 | 3 | JDAS | Usuarios + Roles |
 | 4 | JDAS | Tickets core polimórfico |
 | 5 | JDAS | Base de conocimiento |
-| 6 | Compartido | Dashboard + Reportes (agregaciones) |
+| 6 | JDAS | Dashboard + Reportes (agregaciones) |
 | 7 | JDAS | Frontend scaffold |
 | 8 | JDAS | Frontend auth/usuarios/tickets |
-| — | Compa | Clientes, Membresías, Pagos, Capacitaciones (back + front) |
+| 9–15 | JDAS | Landing, UI unification, módulos UI base |
+| 16 | JDAS | Clientes backend (HU14–17) |
+| 17 | JDAS | Empleados backend |
+| 18 | JDAS | Clientes frontend |
+| 19 | JDAS | Empleados frontend |
+| 20 | JDAS | Membresías backend (HU18–21) |
+| 21 | JDAS | Membresías frontend |
+| 22 | JDAS | Pagos backend con transacción multi-doc (HU22–25) |
+| 23 | JDAS | Pagos frontend |
+| 24 | JDAS | Capacitaciones + Asistencias backend (HU40–44) |
+| 25 | JDAS | Capacitaciones + Asistencias frontend |
 
 ## Puesta en marcha
 
@@ -105,7 +114,5 @@ El sistema demuestra el uso del Aggregation Framework:
 ## Equipo
 
 Juan David Acosta Sánchez — 0192263
-Merly Yineth Tarazona Sepúlveda — 0192251
-Mauri Santiago Figueroa Machado — 0192252
-Karol Juliana Arévalo Pérez — 0192292
 María Angélica Álvarez Navarro — 0192296
+Kevin Andrés Peñaranda Pardo — 0192212
