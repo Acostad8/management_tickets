@@ -54,7 +54,7 @@ Para que el merge no explote:
 
 ### 3.1 Estructura de paquetes
 ```
-backend/src/main/java/co/edu/ufpso/sistemasintegrados/tickets/
+backend/src/main/java/co/tickets/
   domain/           → @Document, entidades Mongo
   domain/enums/     → enums de estados, categorías
   repository/       → interfaces MongoRepository

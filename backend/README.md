@@ -5,7 +5,7 @@ Spring Boot 3.3 · Java 21 · Spring Data MongoDB · Spring Security · JWT
 ## Estructura paquetes
 
 ```
-co.edu.ufpso.sistemasintegrados.tickets
+co.tickets
 ├── TicketsApiApplication        # bootstrap
 ├── config                        # AppProperties, Mongo, Web/CORS, Security
 ├── common                        # PageResponse, utilidades compartidas
