@@ -31,6 +31,7 @@ public class ReporteService {
     public List<TicketsPorCliente> ticketsPorCliente(int limit) {
         List<AggregationOperation> ops = new ArrayList<>();
 
+        //AGRUPA CLIENTES POR CLIENTE ID Y CUENTA TICKETS, TICKETS ABIERTOS Y TICKETS RESUELTOS 
         ops.add(Aggregation.group("clienteId")
                 .count().as("totalTickets")
                 .sum(ConditionalOperators.when(
@@ -40,8 +41,9 @@ public class ReporteService {
                                 Criteria.where("estado").is("en_espera")))
                         .then(1).otherwise(0)).as("ticketsAbiertos")
                 .sum(ConditionalOperators.when(Criteria.where("estado").is("resuelto"))
-                        .then(1).otherwise(0)).as("ticketsResueltos"));
-
+                        .then(1).otherwise(0)).as("ticketsResueltos")); 
+                        
+        //ordena por totalTickets descendente y limita a la cantidad de clientes que se quiere mostrar
         ops.add(Aggregation.sort(Sort.by(Sort.Direction.DESC, "totalTickets")));
         ops.add(Aggregation.limit(limit));
 
@@ -75,7 +77,7 @@ public class ReporteService {
 
     public List<TicketsPorEmpleado> ticketsPorEmpleado(int limit) {
         List<AggregationOperation> ops = new ArrayList<>();
-
+        //usa match para filtrar los tickets que tienen empleadoAsignadoId no nulo
         ops.add(Aggregation.match(Criteria.where("empleadoAsignadoId").ne(null)));
 
         ops.add(Aggregation.group("empleadoAsignadoId")
@@ -88,6 +90,7 @@ public class ReporteService {
         ops.add(Aggregation.sort(Sort.by(Sort.Direction.DESC, "totalAsignados")));
         ops.add(Aggregation.limit(limit));
 
+        //lookup para traer los datos del empleado desde la colección empleados 
         ops.add(Aggregation.lookup("empleados", "_id", "_id", "empleado"));
         ops.add(Aggregation.unwind("empleado", true));
 
@@ -107,15 +110,15 @@ public class ReporteService {
 
         List<TicketsPorEmpleado> out = new ArrayList<>();
         for (Document d : res.getMappedResults()) {
-            out.add(new TicketsPorEmpleado(
-                    objStr(d.get("empleadoId")),
-                    d.getString("codigoEmpleado"),
-                    d.getString("nombre"),
-                    d.getString("apellido"),
-                    d.getString("area"),
-                    numLong(d.get("totalAsignados")),
-                    numLong(d.get("resueltos")),
-                    numLong(d.get("enProceso"))));
+                out.add(new TicketsPorEmpleado(
+                objStr(d.get("empleadoId")),
+                d.getString("codigoEmpleado"),
+                d.getString("nombre"),
+                d.getString("apellido"),
+                d.getString("area"),
+                numLong(d.get("totalAsignados")),
+                numLong(d.get("resueltos")),
+                numLong(d.get("enProceso"))));
         }
         return out;
     }
@@ -129,7 +132,9 @@ public class ReporteService {
         AggregationExpression horasResolucion = ArithmeticOperators.Divide.valueOf(
                 ArithmeticOperators.Subtract.valueOf("fechaCierre").subtract("fechaCreacion"))
                 .divideBy(1000L * 60 * 60);
-
+        
+        //usa project para calcular la diferencia en horas entre fechaCierre y fechaCreacion y 
+        // guardarla en un campo temporal llamado horas
         ops.add(Aggregation.project("modulo").and(horasResolucion).as("horas"));
 
         ops.add(Aggregation.group("modulo")

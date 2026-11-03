@@ -27,7 +27,7 @@ public class BaseConocimientoController {
     @PostMapping
     @PreAuthorize("@perms.has('base_conocimiento.crear')")
     public ResponseEntity<ArticuloResponse> create(@Valid @RequestBody CreateArticuloRequest req,
-                                                   @AuthenticationPrincipal CustomUserDetails principal) {
+                                                    @AuthenticationPrincipal CustomUserDetails principal) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(req, principal));
     }
 

@@ -1,6 +1,7 @@
 import {
   Inbox, BookOpen, LineChart, UserCog, Bell, ShieldCheck,
 } from 'lucide-react';
+import { SectionHeader } from './AudienciasSection';
 
 const items = [
   {
@@ -43,21 +44,41 @@ const items = [
 
 export function IncluyeSection() {
   return (
-    <section id="incluye" className="border-b border-zinc-900 bg-zinc-950">
-      <div className="mx-auto max-w-6xl px-6 py-24">
-        <div className="mb-14 max-w-2xl">
-          <h2 className="text-4xl font-semibold tracking-tight text-zinc-50 sm:text-5xl">
-            Todo lo que necesita una mesa de ayuda, en el mismo panel.
-          </h2>
-        </div>
+    <section id="incluye" className="relative border-b border-zinc-900 bg-zinc-950">
+      <div className="mx-auto max-w-6xl px-6 py-28">
+        <SectionHeader
+          eyebrow="Qué incluye"
+          title="Todo lo que necesita una mesa de ayuda, en el mismo panel."
+          lead="Seis capacidades esenciales que trabajan juntas desde el primer día — sin plug-ins, sin ensamblajes."
+        />
 
-        <div className="grid gap-px border-y border-zinc-900 bg-zinc-900 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map(({ icon: Icon, titulo, descripcion }) => (
-            <div key={titulo} className="bg-zinc-950 p-8">
-              <Icon className="text-brand-400" size={20} />
-              <h3 className="mt-5 text-[17px] font-medium text-zinc-100">{titulo}</h3>
-              <p className="mt-2 text-[14px] leading-relaxed text-zinc-400">{descripcion}</p>
-            </div>
+        <div className="mt-16 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {items.map(({ icon: Icon, titulo, descripcion }, i) => (
+            <article
+              key={titulo}
+              className="group relative overflow-hidden rounded-xl border border-zinc-900 bg-gradient-to-b from-zinc-950 to-zinc-950 p-7 transition hover:border-zinc-800 hover:from-zinc-900/40"
+            >
+              <div
+                className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                aria-hidden
+                style={{
+                  background:
+                    'radial-gradient(400px circle at 50% 0%, rgba(45,143,255,0.08), transparent 60%)',
+                }}
+              />
+              <div className="relative">
+                <div className="flex items-center justify-between">
+                  <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900/60 text-brand-400 transition group-hover:border-brand-500/40 group-hover:text-brand-300">
+                    <Icon size={18} />
+                  </div>
+                  <span className="font-mono text-[11px] text-zinc-600">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                </div>
+                <h3 className="mt-5 text-[17px] font-medium text-zinc-100">{titulo}</h3>
+                <p className="mt-2 text-[14px] leading-relaxed text-zinc-400">{descripcion}</p>
+              </div>
+            </article>
           ))}
         </div>
       </div>

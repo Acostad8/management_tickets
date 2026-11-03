@@ -56,7 +56,7 @@ public class AuthController {
 
     @PostMapping("/change-password")
     public ResponseEntity<Map<String, String>> change(@AuthenticationPrincipal CustomUserDetails principal,
-                                                       @Valid @RequestBody ChangePasswordRequest req) {
+                                                        @Valid @RequestBody ChangePasswordRequest req) {
         authService.changePassword(principal.getUsuarioId(), req);
         return ResponseEntity.ok(Map.of("message", "Contraseña actualizada correctamente."));
     }
