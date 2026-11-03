@@ -27,8 +27,10 @@ public class DashboardController {
     }
 
     @GetMapping("/resumen")
-    public ResponseEntity<DashboardSummary> resumen() {
-        return ResponseEntity.ok(service.resumen());
+    public ResponseEntity<DashboardSummary> resumen(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant desde,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant hasta) {
+        return ResponseEntity.ok(service.resumen(desde, hasta));
     }
 
     @GetMapping("/tickets-por-estado")
@@ -46,8 +48,10 @@ public class DashboardController {
     }
 
     @GetMapping("/tickets-por-prioridad")
-    public ResponseEntity<List<CountByKey>> ticketsPorPrioridad() {
-        return ResponseEntity.ok(service.ticketsPorPrioridad());
+    public ResponseEntity<List<CountByKey>> ticketsPorPrioridad(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant desde,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant hasta) {
+        return ResponseEntity.ok(service.ticketsPorPrioridad(desde, hasta));
     }
 
     @GetMapping("/tickets-por-tipo")
