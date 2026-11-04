@@ -1,4 +1,4 @@
-**Merly Yineth Tarazona Sepúlveda - 0192251 Mauri Santiago Figueroa Machado - 0192252 Juan David Acosta Sánchez - 0192263 Karol Juliana Arévalo Pérez - 0192292 María Angélica Álvarez Navarro - 0192296** 
+** Juan David Acosta Sánchez - 0192263  María Angélica Álvarez Navarro - 0192296 Kevin Andrés Peñaranda Pardo - 0192212** 
 
 **Historias de Usuario Proyecto de Aula** 
 
