@@ -1,0 +1,25 @@
+package co.tickets.domain.embedded;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.FieldType;
+
+import java.time.Instant;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class HistorialEstado {
+
+    private String estadoAnterior;
+    private String estadoNuevo;
+
+    @Field(targetType = FieldType.OBJECT_ID)
+    private String usuarioId;
+
+    private Instant fecha;
+}

@@ -11,7 +11,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>co.edu.ufpso.sistemasintegrados</groupId>
+    <groupId>co.tickets</groupId>
     <artifactId>tickets-api</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <name>tickets-api</name>

@@ -1,0 +1,106 @@
+package co.tickets.bootstrap;
+
+import co.tickets.domain.Rol;
+import co.tickets.domain.Usuario;
+import co.tickets.domain.enums.EstadoUsuario;
+import co.tickets.repository.RolRepository;
+import co.tickets.repository.UsuarioRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.List;
+
+@Configuration
+public class DataSeeder {
+
+    private static final Logger log = LoggerFactory.getLogger(DataSeeder.class);
+
+    @Bean
+    public ApplicationRunner seedRolesAndAdmin(RolRepository rolRepository,
+                                               UsuarioRepository usuarioRepository,
+                                               PasswordEncoder passwordEncoder) {
+        return args -> {
+            seedRoles(rolRepository);
+            seedDefaultAdmin(usuarioRepository, passwordEncoder);
+        };
+    }
+
+    private void seedRoles(RolRepository repo) {
+        createRolIfMissing(repo, "ADMIN", "Administrador",
+                "Acceso total al sistema",
+                List.of(
+                        "usuarios.crear", "usuarios.leer", "usuarios.actualizar",
+                        "roles.crear", "roles.leer", "roles.actualizar", "roles.eliminar",
+                        "clientes.crear", "clientes.leer", "clientes.actualizar",
+                        "empleados.crear", "empleados.leer", "empleados.actualizar",
+                        "tickets.crear", "tickets.leer", "tickets.actualizar", "tickets.eliminar",
+                        "tickets.asignar", "tickets.actualizar_estado", "tickets.responder",
+                        "base_conocimiento.crear", "base_conocimiento.leer",
+                        "base_conocimiento.actualizar", "base_conocimiento.eliminar",
+                        "membresias.crear", "membresias.leer", "membresias.actualizar",
+                        "pagos.crear", "pagos.leer", "pagos.actualizar", "pagos.eliminar",
+                        "capacitaciones.crear", "capacitaciones.leer", "capacitaciones.actualizar",
+                        "asistencias.leer", "asistencias.registrar", "asistencias.eliminar",
+                        "reportes.leer"));
+
+        createRolIfMissing(repo, "SOPORTE", "Personal de Soporte",
+                "Usuario encargado de atender tickets",
+                List.of(
+                        "tickets.leer", "tickets.actualizar", "tickets.actualizar_estado",
+                        "tickets.responder", "tickets.asignar",
+                        "base_conocimiento.crear", "base_conocimiento.leer", "base_conocimiento.actualizar",
+                        "clientes.leer"));
+
+        createRolIfMissing(repo, "CLIENTE", "Cliente externo",
+                "Usuario de empresa cliente que crea y consulta sus tickets",
+                List.of(
+                        "tickets.crear", "tickets.leer_propios", "tickets.responder_propios",
+                        "base_conocimiento.leer",
+                        "capacitaciones.leer", "asistencias.registrar"));
+
+        createRolIfMissing(repo, "VENTAS", "Equipo Comercial",
+                "Gestión de clientes y membresías",
+                List.of(
+                        "clientes.crear", "clientes.leer", "clientes.actualizar",
+                        "membresias.crear", "membresias.leer", "membresias.actualizar",
+                        "pagos.crear", "pagos.leer", "pagos.actualizar",
+                        "reportes.leer"));
+    }
+
+    private void createRolIfMissing(RolRepository repo, String codigo, String nombre,
+                                    String descripcion, List<String> permisos) {
+        if (repo.existsByCodigo(codigo)) {
+            return;
+        }
+        repo.save(Rol.builder()
+                .codigo(codigo)
+                .nombre(nombre)
+                .descripcion(descripcion)
+                .permisos(permisos)
+                .activo(true)
+                .build());
+        log.info("Rol creado: {}", codigo);
+    }
+
+    private void seedDefaultAdmin(UsuarioRepository repo, PasswordEncoder encoder) {
+        final String adminEmail = "admin@sistemasintegrados.co";
+        if (repo.existsByEmail(adminEmail)) {
+            return;
+        }
+        Usuario admin = Usuario.builder()
+                .email(adminEmail)
+                .passwordHash(encoder.encode("Admin1234!"))
+                .nombre("Administrador")
+                .apellido("del Sistema")
+                .roles(List.of("ADMIN"))
+                .estado(EstadoUsuario.activo)
+                .intentosFallidos(0)
+                .build();
+        repo.save(admin);
+        log.info("Usuario ADMIN por defecto creado: {} / Admin1234! — CAMBIAR INMEDIATAMENTE EN PRODUCCIÓN", adminEmail);
+    }
+}
