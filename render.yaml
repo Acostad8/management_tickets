@@ -1,0 +1,48 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+# Los despliegues se disparan desde GitHub Actions (.github/workflows/deploy.yml)
+# mediante Deploy Hooks, por eso autoDeploy está desactivado.
+services:
+  # ---------- Backend (Spring Boot en Docker) ----------
+  - type: web
+    name: tickets-api
+    runtime: docker
+    plan: free
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    branch: main
+    autoDeploy: false
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: MONGO_URI            # cadena de MongoDB Atlas
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ALLOWED_ORIGINS # URL del frontend, ej. https://tickets-web.onrender.com
+        sync: false
+      - key: PASSWORD_RESET_URL   # ej. https://tickets-web.onrender.com/reset-password
+        sync: false
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+
+  # ---------- Frontend (Vite estático) ----------
+  - type: web
+    name: tickets-web
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    branch: main
+    autoDeploy: false
+    envVars:
+      - key: VITE_API_URL         # ej. https://tickets-api.onrender.com/api/v1
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
